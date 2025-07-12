@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 # import your package‐scoped db & model
-from todo import db, Task, User
+from todo import db, Task, User, BugReport
 from cleanup import cleanup_completed_tasks, get_cleanup_stats
 
 # ─── Setup ────────────────────────────────────────────────────────────────
@@ -329,12 +329,65 @@ def report():
             flash("Bug type and description are required!", "error")
             return render_template("report.html")
         
-        # Here you could save to database or send email
-        # For now, just show a success message
-        flash(f"Bug report submitted successfully! Type: {bug_type}, Priority: {priority}")
+        # Save bug report to database
+        try:
+            bug_report = BugReport(
+                bug_type=bug_type,
+                priority=priority or 'medium',
+                description=description,
+                steps=steps,
+                expected=expected,
+                actual=actual,
+                user_id=current_user.id
+            )
+            db.session.add(bug_report)
+            db.session.commit()
+            flash(f"Bug report submitted successfully! We'll look into it. (Report #{bug_report.id})", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error submitting bug report. Please try again.", "error")
+            
         return redirect(url_for('index'))
     
     return render_template("report.html")
+
+# ─── ADMIN ROUTES ────────────────────────────────────────────────────────
+
+@app.route("/admin/bugs")
+@login_required
+def admin_bugs():
+    # Simple admin check - you can make this more sophisticated
+    # For now, user with ID 1 (first user) is admin
+    if current_user.id != 1:
+        flash("Access denied. Admin only.", "error")
+        return redirect(url_for('index'))
+    
+    # Get all bug reports, ordered by newest first
+    bug_reports = BugReport.query.order_by(BugReport.created_at.desc()).all()
+    
+    return render_template("admin_bugs.html", bug_reports=bug_reports)
+
+@app.route("/admin/bugs/<int:bug_id>/resolve", methods=["POST"])
+@login_required
+def resolve_bug(bug_id):
+    if current_user.id != 1:
+        flash("Access denied. Admin only.", "error")
+        return redirect(url_for('index'))
+    
+    bug_report = BugReport.query.get_or_404(bug_id)
+    bug_report.resolved = True
+    db.session.commit()
+    flash(f"Bug report #{bug_id} marked as resolved!", "success")
+    return redirect(url_for('admin_bugs'))
+
+@app.route("/migrate_db")
+def migrate_db():
+    """Simple database migration to add new tables"""
+    try:
+        db.create_all()
+        return "Database migrated successfully! BugReport table created."
+    except Exception as e:
+        return f"Error migrating database: {str(e)}"
 
 # ─── RUN ─────────────────────────────────────────────────────────────────
 

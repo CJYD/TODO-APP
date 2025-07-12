@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+  <a href="{{ url_for('index') }}" class="back-link">← Back to Tasks</a>
+  
+  <h1>Bug Reports Admin</h1>
+  <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+    Total Reports: {{ bug_reports|length }} | 
+    Unresolved: {{ bug_reports|selectattr('resolved', 'equalto', false)|list|length }}
+  </p>
+
+  {% if bug_reports %}
+    <div class="bug-reports">
+      {% for report in bug_reports %}
+        <div class="bug-report-card" style="
+          background: var(--bg-secondary);
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 1.5rem;
+          border-left: 4px solid {% if report.resolved %}#34c759{% elif report.priority == 'critical' %}#ff453a{% elif report.priority == 'high' %}#ff9500{% else %}#007aff{% endif %};
+          {% if report.resolved %}opacity: 0.6;{% endif %}
+        ">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+              <h3 style="margin: 0; color: var(--text-primary);">
+                #{{ report.id }} - {{ report.bug_type|title }} 
+                {% if report.resolved %}
+                  <span style="color: #34c759; font-size: 0.8em;">✓ RESOLVED</span>
+                {% endif %}
+              </h3>
+              <p style="margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+                Priority: <strong>{{ report.priority|title }}</strong> | 
+                Reporter: {{ report.reporter.username }} | 
+                {{ report.created_at.strftime('%Y-%m-%d %H:%M') }}
+              </p>
+            </div>
+            {% if not report.resolved %}
+              <form method="post" action="{{ url_for('resolve_bug', bug_id=report.id) }}" style="margin: 0;">
+                <button type="submit" style="
+                  background: #34c759;
+                  color: white;
+                  border: none;
+                  padding: 0.5rem 1rem;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  font-size: 0.9rem;
+                ">Mark Resolved</button>
+              </form>
+            {% endif %}
+          </div>
+          
+          <div style="margin-bottom: 1rem;">
+            <strong style="color: var(--text-primary);">Description:</strong>
+            <p style="margin: 0.5rem 0; color: var(--text-primary);">{{ report.description }}</p>
+          </div>
+          
+          {% if report.steps %}
+            <div style="margin-bottom: 1rem;">
+              <strong style="color: var(--text-primary);">Steps to Reproduce:</strong>
+              <p style="margin: 0.5rem 0; color: var(--text-primary); white-space: pre-line;">{{ report.steps }}</p>
+            </div>
+          {% endif %}
+          
+          {% if report.expected %}
+            <div style="margin-bottom: 1rem;">
+              <strong style="color: var(--text-primary);">Expected Behavior:</strong>
+              <p style="margin: 0.5rem 0; color: var(--text-primary);">{{ report.expected }}</p>
+            </div>
+          {% endif %}
+          
+          {% if report.actual %}
+            <div style="margin-bottom: 1rem;">
+              <strong style="color: var(--text-primary);">Actual Behavior:</strong>
+              <p style="margin: 0.5rem 0; color: var(--text-primary);">{{ report.actual }}</p>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+      <h3>No Bug Reports Yet</h3>
+      <p>When users submit bug reports, they'll appear here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

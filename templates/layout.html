@@ -74,6 +74,15 @@
             </svg>
             Report Bug
           </a>
+          {% if current_user.id == 1 %}
+          <a href="{{ url_for('admin_bugs') }}" class="dropdown-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10 9 12 1.16.22 2.84.22 4 0 5.16-2 9-6.45 9-12V7L12 2z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            Admin: Bug Reports
+          </a>
+          {% endif %}
           <div class="dropdown-divider"></div>
           <a href="{{ url_for('logout') }}" class="dropdown-item logout-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

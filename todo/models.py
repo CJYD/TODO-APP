@@ -29,3 +29,20 @@ class Task(db.Model):
     created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
     done        = db.Column(db.Boolean,     default=False)
     user_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
+class BugReport(db.Model):
+    __tablename__ = "bug_reports"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    bug_type = db.Column(db.String(50), nullable=False)
+    priority = db.Column(db.String(20), nullable=False, default='medium')
+    description = db.Column(db.Text, nullable=False)
+    steps = db.Column(db.Text, nullable=True)
+    expected = db.Column(db.Text, nullable=True)
+    actual = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Relationship to user
+    reporter = db.relationship('User', backref='bug_reports', lazy=True)
