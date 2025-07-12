@@ -262,3 +262,38 @@ Check error logs in PythonAnywhere Web tab for debugging.
 ✅ **Production-ready** (secure, scalable)  
 
 Your app is now ready for friends and family to use! 🎉
+
+---
+
+## Bug Report System
+
+Your app now includes a complete bug reporting system:
+
+### ✅ **For Users:**
+- **Report bugs** via the profile dropdown → "Report Bug"
+- **Detailed forms** with bug type, priority, description, and steps
+- **Confirmation messages** with report ID numbers
+- **User-friendly interface** that matches your app design
+
+### ✅ **For Admins (First User):**
+- **Admin panel** at `/admin/bugs` (visible in profile dropdown for user #1)
+- **View all reports** with color-coded priorities
+- **Mark as resolved** functionality
+- **User information** showing who reported each bug
+- **Filtering** between resolved and unresolved reports
+
+### **Database Storage:**
+- All bug reports are **saved permanently** in your database
+- Reports include: bug type, priority, description, steps, expected/actual behavior
+- Linked to user accounts for accountability
+- Timestamps for tracking when issues were reported
+
+### **Admin Access:**
+- The **first user** who registers (ID #1) automatically becomes admin
+- Only admins can view the bug reports panel
+- You can easily modify this in `app.py` if needed
+
+### **Deployment Notes:**
+- Bug reports work on both **PythonAnywhere** and **Render**
+- Database automatically migrates when you visit `/migrate_db`
+- No additional setup required - works out of the box
