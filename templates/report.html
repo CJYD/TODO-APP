@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container add-container">
+
+  <!-- BACK LINK -->
+  <a href="{{ url_for('index') }}" class="back-link">← Back</a>
+
+  <h1>Report a Bug</h1>
+  <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">Help us improve by reporting any issues you encounter</p>
+
+  <form method="post" class="form">
+    <div class="form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label for="bug_type" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Bug Type *</label>
+        <select name="bug_type" id="bug_type" required style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease;">
+          <option value="">Select type...</option>
+          <option value="ui">UI/Visual Issue</option>
+          <option value="functionality">Functionality Problem</option>
+          <option value="performance">Performance Issue</option>
+          <option value="authentication">Login/Authentication</option>
+          <option value="data">Data Loss/Corruption</option>
+          <option value="mobile">Mobile Specific</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="priority" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Priority</label>
+        <select name="priority" id="priority" style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease;">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label for="description" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Bug Description *</label>
+      <textarea 
+        name="description" 
+        id="description" 
+        required 
+        placeholder="Briefly describe the bug you encountered..."
+        style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease; min-height: 100px; resize: vertical; font-family: inherit;"
+      ></textarea>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <label for="steps" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Steps to Reproduce</label>
+      <textarea 
+        name="steps" 
+        id="steps" 
+        placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."
+        style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease; min-height: 120px; resize: vertical; font-family: inherit;"
+      ></textarea>
+    </div>
+
+    <div class="form-fields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+      <div>
+        <label for="expected" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Expected Behavior</label>
+        <textarea 
+          name="expected" 
+          id="expected" 
+          placeholder="What should have happened?"
+          style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease; min-height: 80px; resize: vertical; font-family: inherit;"
+        ></textarea>
+      </div>
+      <div>
+        <label for="actual" style="display: block; color: var(--text-primary); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Actual Behavior</label>
+        <textarea 
+          name="actual" 
+          id="actual" 
+          placeholder="What actually happened?"
+          style="width: 100%; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-primary); border-radius: 12px; padding: 0.75rem 1rem; font-size: 1rem; transition: background 0.2s ease; min-height: 80px; resize: vertical; font-family: inherit;"
+        ></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn full-width add-submit">
+      Submit Bug Report
+    </button>
+  </form>
+
+</div>
+
+<style>
+/* Form styling for report page */
+.form select:hover,
+.form textarea:hover {
+  background: var(--bg-secondary) !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+.form select:focus,
+.form textarea:focus {
+  outline: none;
+  background: var(--bg-secondary) !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+.form select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .form-fields[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+{% endblock %}

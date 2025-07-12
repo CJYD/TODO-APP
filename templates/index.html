@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <button class="filter-btn active"   data-filter="all">All</button>
+    <button class="filter-btn"          data-filter="active">Active</button>
+    <button class="filter-btn"          data-filter="today">Due Today</button>
+    <button class="filter-btn"          data-filter="completed">Done</button>
+  </div>
+
+  <!-- Progress bar (only shown on 'All' filter) -->
+  <div class="progress" id="progress-bar">
+    <div class="progress-bar" style="width: {{ pct_done }}%"></div>
+  </div>
+
+  <!-- Add new -->
+  <a href="{{ url_for('add') }}" class="btn">+ Add new task</a>
+
+  <!-- Active Tasks Section -->
+  <div id="active-section" class="task-section">
+    {% if current_filter is string and current_filter == 'today' %}
+      <h2>Due Today</h2>
+    {% else %}
+      <h2>Active Tasks</h2>
+    {% endif %}
+
+    {# switched from <ul> to <ol> here: #}
+    <ol class="task-list">
+      {% for t in active_tasks %}
+        <li
+          class="task-item{% if t.days is not none and t.days < 0 %} overdue{% elif t.days is not none and t.days < 1 %} due-soon{% endif %}{% if t.done %} completed{% endif %}"
+          data-days="{{ t.days if t.days is not none else '' }}"
+          data-done="{{ 'true' if t.done else 'false' }}">
+
+          <div class="task-desc">
+            {% if t.done %}
+              <s>{{ t.description }}</s>
+            {% else %}
+              {{ t.description }}
+            {% endif %}
+          </div>
+
+          <div class="task-due">
+            {% if t.days is not none %}
+              {% if t.days == -1 %}
+                Overdue
+              {% else %}
+                {{ t.days }}d {{ t.hours }}h {{ t.mins }}m
+              {% endif %}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+
+          <div class="task-actions">
+            {% if not t.done %}
+              <a href="{{ url_for('done',   task_id=t.id) }}">Done</a>
+            {% endif %}
+            <a href="{{ url_for('remove', task_id=t.id) }}">Delete</a>
+          </div>
+        </li>
+      {% endfor %}
+      
+      <!-- Always include a no-tasks message that JavaScript can control -->
+      <li class="no-tasks{% if active_tasks %} hidden{% endif %}">
+        {% if current_filter is string and current_filter == 'today' %}
+          No tasks due today.
+        {% else %}
+          No active tasks.
+        {% endif %}
+      </li>
+    </ol>
+  </div>
+
+  <!-- Completed Tasks Section -->
+  <div id="completed-section" class="task-section"
+       {% if current_filter in ['active','today'] %} style="display:none"{% endif %}>
+    <h2>Completed Tasks</h2>
+    <ol class="task-list">
+      {% for t in completed_tasks %}
+        <li class="task-item completed" data-done="true">
+          <div class="task-desc"><s>{{ t.description }}</s></div>
+          <div class="task-due"></div>
+          <div class="task-actions">
+            <a href="{{ url_for('remove', task_id=t.id) }}" class="btn-action">Delete</a>
+          </div>
+        </li>
+      {% endfor %}
+      
+      <!-- Always include a no-tasks message that JavaScript can control -->
+      <li class="no-tasks{% if completed_tasks %} hidden{% endif %}">
+        No completed tasks.
+      </li>
+    </ol>
+  </div>
+
+</div>
+{% endblock %}
