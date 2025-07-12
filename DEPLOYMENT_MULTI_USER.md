@@ -1,5 +1,51 @@
 # TODO App Deployment Guide for PythonAnywhere
 
+# Render.com Deployment (Alternative)
+
+## Quick Render Deployment
+
+**Render is faster and easier than PythonAnywhere for deployment.**
+
+### 1. Push to GitHub (if not done already)
+
+```bash
+git add .
+git commit -m "Updated wsgi.py for Render deployment"
+git push origin main
+```
+
+### 2. Deploy on Render
+
+1. **Go to [render.com](https://render.com)** and sign up
+2. **Connect GitHub** account
+3. **Click "New +"** → "Web Service"
+4. **Select your repository**
+5. **Configure:**
+   - **Name:** `todo-app` (or your preferred name)
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python wsgi.py`
+   - **Instance Type:** `Free`
+
+### 3. Environment Variables
+
+Add these in Render dashboard:
+- **Key:** `SECRET_KEY` **Value:** `your-secret-key-here`
+- **Key:** `FLASK_ENV` **Value:** `production`
+
+Generate secret key:
+```python
+import secrets
+print(secrets.token_hex(32))
+```
+
+### 4. Deploy!
+
+Click **"Create Web Service"** - your app will be live in 5-10 minutes at:
+`https://your-app-name.onrender.com`
+
+---
+
 ## Multi-User Authentication System
 
 Your todo app now includes a complete user authentication system with:
