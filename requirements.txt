@@ -1,3 +1,5 @@
+pytz
+tzlocal
 alembic==1.16.4
 blinker==1.9.0
 click==8.2.1

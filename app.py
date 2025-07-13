@@ -117,8 +117,8 @@ def index():
     total    = len(all_tasks)
     pct_done = int(len(completed) / total * 100) if total else 0
 
-    # Force reload - simple time calculation using local time
-    now = datetime.now()
+    # Use UTC for backend calculations, pass UTC to frontend for local conversion
+    now = datetime.utcnow()
     
     for t in active:
         if t.due_date:
@@ -163,12 +163,11 @@ def index():
         completed_tasks=completed,
         pct_done=pct_done,
         has_completed_tasks=len(completed) > 0,
+        now_utc=now.isoformat()  # Pass UTC time to frontend
     ))
-    
     # Additional cache busting for this route specifically
-    response.headers['Last-Modified'] = datetime.now().strftime('%a, %d %b %Y %H:%M:%S GMT')
-    response.headers['ETag'] = str(hash(str(datetime.now().timestamp())))
-    
+    response.headers['Last-Modified'] = now.strftime('%a, %d %b %Y %H:%M:%S GMT')
+    response.headers['ETag'] = str(hash(str(now.timestamp())))
     return response
 
 @app.route("/add", methods=["GET", "POST"])
@@ -184,8 +183,19 @@ def add():
             # parse the new task's due datetime (or None)
             new_due = None
             if date_str:
-                ts      = time_str.strip() or "00:00"
-                new_due = datetime.strptime(f"{date_str} {ts}", "%Y-%m-%d %H:%M")
+                ts = time_str.strip() or "00:00"
+                local_dt = datetime.strptime(f"{date_str} {ts}", "%Y-%m-%d %H:%M")
+                try:
+                    from tzlocal import get_localzone
+                    import datetime as dtmod
+                    local_tz = get_localzone()
+                    print(f"[DEBUG] Parsed local datetime: {local_dt} (timezone: {local_tz})")
+                    local_dt = local_dt.replace(tzinfo=local_tz)
+                    new_due = local_dt.astimezone(dtmod.timezone.utc).replace(tzinfo=None)
+                    print(f"[DEBUG] Converted to UTC: {new_due}")
+                except Exception as e:
+                    print(f"[ERROR] Timezone conversion failed: {e}")
+                    new_due = local_dt
 
             # create the new task (automatic sorting by due_date/created_at)
             task = Task(
@@ -586,4 +596,4 @@ def api_feedback():
 # ─── RUN ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    app.run(debug=True, host='0.0.0.0', port=5003)

@@ -17,8 +17,7 @@
           border-radius: 12px;
           padding: 1.5rem;
           margin-bottom: 1.5rem;
-          border-left: 4px solid {% if report.resolved %}#34c759{% elif report.priority == 'critical' %}#ff453a{% elif report.priority == 'high' %}#ff9500{% else %}#007aff{% endif %};
-          {% if report.resolved %}opacity: 0.6;{% endif %}
+          border-left: 4px solid {% if report.resolved %}#34c759{% elif report.priority == 'critical' %}#ff453a{% elif report.priority == 'high' %}#ff9500{% else %}#007aff{% endif %}; {% if report.resolved %}opacity: 0.6;{% endif %}
         ">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
             <div>

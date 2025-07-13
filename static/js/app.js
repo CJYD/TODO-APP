@@ -1011,6 +1011,41 @@ function applySortPreference(sortBy) {
     });
 }
 
+// Robust UTC to local time conversion for countdown
+function convertUTCToLocal(utcString) {
+    return new Date(utcString);
+}
+
+function getCountdownString(dueUTC, nowUTC) {
+    if (!dueUTC) return '—';
+    const due = convertUTCToLocal(dueUTC);
+    const now = convertUTCToLocal(nowUTC);
+    let delta = due - now;
+    if (isNaN(delta)) return '—';
+    if (delta < 0) return 'Overdue';
+    let totalMinutes = Math.floor(delta / 60000);
+    let days = Math.floor(totalMinutes / (24 * 60));
+    let hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+    let mins = totalMinutes % 60;
+    return `${days}d ${hours}h ${mins}m`;
+}
+
+function updateTaskCountdowns(nowUTC) {
+    document.querySelectorAll('.task-item').forEach(function(item) {
+        const dueUTC = item.getAttribute('data-due-utc');
+        const meta = item.querySelector('.task-meta .task-due');
+        if (meta) {
+            meta.textContent = getCountdownString(dueUTC, nowUTC);
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    if (window.now_utc) {
+        updateTaskCountdowns(window.now_utc);
+    }
+});
+
 // Initialize user preferences on page load
 document.addEventListener('DOMContentLoaded', function() {
     applyUserPreferences();
