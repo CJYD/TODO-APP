@@ -260,7 +260,11 @@ def auto_cleanup():
                 pass
         if should_cleanup:
             count = cleanup_completed_tasks(7)
-            db.session.execute(text("REPLACE INTO app_settings (key, value) VALUES (:key, :value)"), {"key": marker_key, "value": datetime.now().isoformat()})
+            db.session.execute(text("""
+                INSERT INTO app_settings (key, value)
+                VALUES (:key, :value)
+                ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+            """), {"key": marker_key, "value": datetime.now().isoformat()})
             db.session.commit()
             if count > 0:
                 print(f"Auto-cleanup: Removed {count} old completed tasks")
