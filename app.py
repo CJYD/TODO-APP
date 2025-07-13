@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify, flash
 from flask_mail import Mail, Message
-from sqlalchemy import func
+from sqlalchemy import func, text
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
@@ -363,8 +363,23 @@ def logout():
 @app.route("/settings")
 @login_required
 def settings():
-    flash("Settings page coming soon!")
-    return redirect(url_for('index'))
+    # Get task statistics for the current user
+    total_tasks = db.session.execute(
+        text("SELECT COUNT(*) FROM tasks WHERE user_id = :user_id"),
+        {"user_id": current_user.id}
+    ).scalar()
+    
+    completed_tasks = db.session.execute(
+        text("SELECT COUNT(*) FROM tasks WHERE user_id = :user_id AND done = 1"),
+        {"user_id": current_user.id}
+    ).scalar()
+    
+    task_stats = {
+        'total': total_tasks or 0,
+        'completed': completed_tasks or 0
+    }
+    
+    return render_template("settings.html", task_stats=task_stats)
 
 @app.route("/report", methods=["GET", "POST"])
 @login_required
@@ -463,6 +478,89 @@ def db_info():
     """
     
     return info
+
+# ─── API Endpoints for Settings ─────────────────────────────────────────
+
+@app.route("/api/export-tasks")
+@login_required
+def api_export_tasks():
+    """Export all tasks for the current user as JSON"""
+    try:
+        tasks = db.session.execute(
+            text("""SELECT description, due_date, due_time, done, created_at 
+                    FROM tasks WHERE user_id = :user_id ORDER BY created_at DESC"""),
+            {"user_id": current_user.id}
+        ).fetchall()
+        
+        task_list = []
+        for task in tasks:
+            task_list.append({
+                "description": task[0],
+                "due_date": task[1],
+                "due_time": task[2],
+                "completed": bool(task[3]),
+                "created_at": task[4]
+            })
+        
+        return jsonify({
+            "user": current_user.username,
+            "export_date": datetime.now().isoformat(),
+            "total_tasks": len(task_list),
+            "tasks": task_list
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/clear-completed", methods=["POST"])
+@login_required
+def api_clear_completed():
+    """Clear all completed tasks for the current user"""
+    try:
+        result = db.session.execute(
+            text("DELETE FROM tasks WHERE user_id = :user_id AND done = 1"),
+            {"user_id": current_user.id}
+        )
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Cleared {result.rowcount} completed tasks"
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/feedback", methods=["POST"])
+@login_required
+def api_feedback():
+    """Submit user feedback"""
+    try:
+        data = request.get_json()
+        feedback_text = data.get('feedback', '').strip()
+        
+        if not feedback_text:
+            return jsonify({"success": False, "error": "Feedback cannot be empty"}), 400
+        
+        # Store feedback as a bug report with type 'feedback'
+        feedback_report = BugReport(
+            user_id=current_user.id,
+            bug_type='feedback',
+            priority='low',
+            description=feedback_text,
+            steps='',
+            expected='',
+            actual='',
+            status='new',
+            created_at=datetime.now()
+        )
+        
+        db.session.add(feedback_report)
+        db.session.commit()
+        
+        return jsonify({"success": True, "message": "Feedback submitted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # ─── RUN ─────────────────────────────────────────────────────────────────
 

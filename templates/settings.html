@@ -1,0 +1,642 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container add-container">
+
+  <!-- BACK LINK -->
+  <a href="{{ url_for('index') }}" class="back-link">← Back</a>
+
+  <h1>Settings</h1>
+  <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">Customize your TODO experience</p>
+
+  <!-- Account Section -->
+  <div class="settings-section">
+    <h2 class="section-title">Account</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Username</span>
+          <span class="setting-value">{{ current_user.username.title() }}</span>
+        </div>
+        <button class="setting-action">Edit</button>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Member since</span>
+          <span class="setting-value">{{ current_user.created_at.strftime('%B %Y') if current_user.created_at else 'Unknown' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appearance Section -->
+  <div class="settings-section">
+    <h2 class="section-title">Appearance</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Theme</span>
+          <span class="setting-description">Choose your preferred color scheme</span>
+        </div>
+        <div class="theme-selector">
+          <button class="theme-option active" data-theme="system">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Auto
+          </button>
+          <button class="theme-option" data-theme="light">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+            Light
+          </button>
+          <button class="theme-option" data-theme="dark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            Dark
+          </button>
+        </div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Compact Mode</span>
+          <span class="setting-description">Show more tasks in less space</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="compact-mode">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Preferences Section -->
+  <div class="settings-section">
+    <h2 class="section-title">Task Preferences</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Default Due Time</span>
+          <span class="setting-description">Time for new tasks without specific time</span>
+        </div>
+        <select class="setting-select" id="default-time">
+          <option value="09:00">9:00 AM</option>
+          <option value="12:00">12:00 PM</option>
+          <option value="17:00" selected>5:00 PM</option>
+          <option value="21:00">9:00 PM</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Default Priority</span>
+          <span class="setting-description">Priority level for new tasks</span>
+        </div>
+        <select class="setting-select" id="default-priority">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Auto-hide Completed</span>
+          <span class="setting-description">Hide completed tasks after 7 days</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-hide-completed">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Sort Tasks By</span>
+          <span class="setting-description">Default sorting method</span>
+        </div>
+        <select class="setting-select" id="sort-preference">
+          <option value="due_date" selected>Due Date</option>
+          <option value="priority">Priority</option>
+          <option value="created">Date Created</option>
+          <option value="alphabetical">Alphabetical</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Section -->
+  <div class="settings-section">
+    <h2 class="section-title">Notifications</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Browser Notifications</span>
+          <span class="setting-description">Get notified about upcoming tasks</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="browser-notifications">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Reminder Timing</span>
+          <span class="setting-description">When to remind you about tasks</span>
+        </div>
+        <select class="setting-select" id="reminder-timing">
+          <option value="15">15 minutes before</option>
+          <option value="60" selected>1 hour before</option>
+          <option value="1440">1 day before</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Overdue Alerts</span>
+          <span class="setting-description">Get alerted about overdue tasks</span>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="overdue-alerts" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data & Privacy Section -->
+  <div class="settings-section">
+    <h2 class="section-title">Data & Privacy</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Export Tasks</span>
+          <span class="setting-description">Download all your tasks as JSON</span>
+        </div>
+        <button class="setting-action" onclick="exportTasks()">Export</button>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Clear Completed Tasks</span>
+          <span class="setting-description">Remove all completed tasks permanently</span>
+        </div>
+        <button class="setting-action warning" onclick="clearCompleted()">Clear</button>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Task Statistics</span>
+          <span class="setting-description">{{ task_stats.total if task_stats else 0 }} total, {{ task_stats.completed if task_stats else 0 }} completed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Section -->
+  <div class="settings-section">
+    <h2 class="section-title">About & Support</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">App Version</span>
+          <span class="setting-value">1.0.0</span>
+        </div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Report a Bug</span>
+          <span class="setting-description">Help us improve the app</span>
+        </div>
+        <a href="{{ url_for('report') }}" class="setting-action">Report</a>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Feedback</span>
+          <span class="setting-description">Share your thoughts and suggestions</span>
+        </div>
+        <button class="setting-action" onclick="sendFeedback()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="settings-section danger-zone">
+    <h2 class="section-title">Danger Zone</h2>
+    <div class="setting-group">
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Delete Account</span>
+          <span class="setting-description">Permanently delete your account and all data</span>
+        </div>
+        <button class="setting-action danger" onclick="confirmDeleteAccount()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+/* Settings Page Styles */
+.settings-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.setting-group {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-primary);
+  transition: background 0.2s ease;
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="light"] .setting-item:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.setting-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setting-label {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.setting-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.setting-value {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.setting-action {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-width: 70px;
+  justify-content: center;
+}
+
+.setting-action:hover {
+  background: var(--accent-blue-hover);
+  transform: translateY(-1px);
+}
+
+.setting-action.warning {
+  background: var(--accent-orange);
+}
+
+.setting-action.warning:hover {
+  background: #e6850e;
+}
+
+.setting-action.danger {
+  background: var(--accent-red);
+}
+
+.setting-action.danger:hover {
+  background: #e6342a;
+}
+
+.setting-select {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  min-width: 140px;
+  cursor: pointer;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+/* Theme Selector */
+.theme-selector {
+  display: flex;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  padding: 2px;
+  border: 1px solid var(--border-primary);
+}
+
+.theme-option {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: 500;
+}
+
+.theme-option:hover {
+  color: var(--text-primary);
+}
+
+.theme-option.active {
+  background: var(--accent-blue);
+  color: white;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--border-primary);
+  border-radius: 28px;
+  transition: 0.3s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--accent-blue);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* Danger Zone */
+.danger-zone {
+  border: 1px solid var(--accent-red);
+  border-radius: 12px;
+  padding: 1rem;
+  background: rgba(255, 59, 48, 0.05);
+}
+
+.danger-zone .section-title {
+  color: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .setting-item .setting-action,
+  .setting-item .setting-select,
+  .setting-item .theme-selector,
+  .setting-item .toggle-switch {
+    align-self: flex-end;
+  }
+  
+  .theme-selector {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .theme-option {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.25rem;
+  }
+  
+  .theme-option svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+</style>
+
+<script>
+// Settings functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Load saved preferences
+  loadPreferences();
+  
+  // Theme selector
+  document.querySelectorAll('.theme-option').forEach(button => {
+    button.addEventListener('click', function() {
+      const theme = this.dataset.theme;
+      setTheme(theme);
+      updateActiveThemeButton(theme);
+      savePreference('theme', theme);
+    });
+  });
+  
+  // Toggle switches
+  document.querySelectorAll('.toggle-switch input').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      savePreference(this.id, this.checked);
+    });
+  });
+  
+  // Select dropdowns
+  document.querySelectorAll('.setting-select').forEach(select => {
+    select.addEventListener('change', function() {
+      savePreference(this.id, this.value);
+    });
+  });
+});
+
+function loadPreferences() {
+  // Load theme
+  const savedTheme = localStorage.getItem('settings-theme') || 'system';
+  updateActiveThemeButton(savedTheme);
+  
+  // Load toggles
+  ['compact-mode', 'auto-hide-completed', 'browser-notifications', 'overdue-alerts'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      const saved = localStorage.getItem(`settings-${id}`);
+      element.checked = saved === 'true';
+    }
+  });
+  
+  // Load selects
+  ['default-time', 'default-priority', 'sort-preference', 'reminder-timing'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      const saved = localStorage.getItem(`settings-${id}`);
+      if (saved) element.value = saved;
+    }
+  });
+}
+
+function savePreference(key, value) {
+  localStorage.setItem(`settings-${key}`, value);
+}
+
+function updateActiveThemeButton(theme) {
+  document.querySelectorAll('.theme-option').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
+}
+
+function setTheme(theme) {
+  if (theme === 'system') {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', systemTheme);
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
+
+function exportTasks() {
+  // This would fetch tasks from the server and download as JSON
+  fetch('/api/export-tasks')
+    .then(response => response.json())
+    .then(data => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tasks-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(err => alert('Export failed. Please try again.'));
+}
+
+function clearCompleted() {
+  if (confirm('Are you sure you want to permanently delete all completed tasks? This cannot be undone.')) {
+    fetch('/api/clear-completed', { method: 'POST' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Completed tasks cleared successfully.');
+          location.reload();
+        } else {
+          alert('Failed to clear tasks. Please try again.');
+        }
+      })
+      .catch(err => alert('Failed to clear tasks. Please try again.'));
+  }
+}
+
+function sendFeedback() {
+  const feedback = prompt('Share your feedback with us:');
+  if (feedback && feedback.trim()) {
+    fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feedback: feedback.trim() })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Thank you for your feedback!');
+      } else {
+        alert('Failed to send feedback. Please try again.');
+      }
+    })
+    .catch(err => alert('Failed to send feedback. Please try again.'));
+  }
+}
+
+function confirmDeleteAccount() {
+  const confirmation = prompt('Type "DELETE" to confirm account deletion:');
+  if (confirmation === 'DELETE') {
+    if (confirm('This will permanently delete your account and all data. Are you absolutely sure?')) {
+      // Implement account deletion
+      alert('Account deletion feature coming soon. Contact support if needed.');
+    }
+  }
+}
+
+// Check notification permission
+if ('Notification' in window) {
+  const notificationToggle = document.getElementById('browser-notifications');
+  if (Notification.permission === 'granted') {
+    notificationToggle.checked = true;
+  } else if (Notification.permission === 'denied') {
+    notificationToggle.disabled = true;
+    notificationToggle.parentElement.querySelector('.setting-description').textContent = 'Notifications blocked by browser';
+  }
+  
+  notificationToggle.addEventListener('change', function() {
+    if (this.checked && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission !== 'granted') {
+          this.checked = false;
+        }
+      });
+    }
+  });
+}
+</script>
+{% endblock %}
