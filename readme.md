@@ -122,8 +122,14 @@ See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for complete deployment instruc
 2. Connect repository to Render
 3. Set environment variables:
    - `SECRET_KEY`: Your secure secret key
+   - `DEVELOPER_EMAIL`: Email address to receive bug report notifications
+   - `MAIL_USERNAME`: Email account for sending notifications (optional)
+   - `MAIL_PASSWORD`: Email account password (optional)
+   - `MAIL_SERVER`: SMTP server (default: smtp.gmail.com)
 4. Deploy with PostgreSQL database
 5. Visit `/migrate_db` to initialize database
+
+**Note**: Email notifications are optional. If not configured, bug reports will still be saved to the database for admin review.
 
 ## 💡 Usage
 
@@ -140,9 +146,10 @@ See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for complete deployment instruc
 - **Filter**: Use filter buttons (All, Active, Due Today, Completed)
 
 ### Bug Reporting
-- Access via profile dropdown → "Report Bug"
-- Fill out detailed bug report form
-- Admins can view and resolve reports in admin panel
+- Access via page footer "Report a problem" link
+- Fill out detailed bug report form with priority levels
+- Developers automatically receive email notifications (if configured)
+- Reports are only visible to admin users for privacy
 
 ### Admin Features
 - First registered user automatically becomes admin

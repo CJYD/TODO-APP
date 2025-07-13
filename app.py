@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify, flash
+from flask_mail import Mail, Message
 from sqlalchemy import func
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -24,13 +25,32 @@ if DATABASE_URL:
     # Production: Use PostgreSQL from environment (Render provides this)
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
-    # Local development: Use SQLite
-    DB_PATH = os.path.join(DATA_DIR, "tasks.db")
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+    # Local development: Choose between PostgreSQL and SQLite
+    LOCAL_POSTGRES = os.environ.get('USE_LOCAL_POSTGRES', 'false').lower() == 'true'
+    
+    if LOCAL_POSTGRES:
+        # Local PostgreSQL (set USE_LOCAL_POSTGRES=true in your environment)
+        local_db_url = os.environ.get('LOCAL_DATABASE_URL', 
+                                    'postgresql://todo_user:localpass@localhost/todo_local')
+        app.config["SQLALCHEMY_DATABASE_URI"] = local_db_url
+    else:
+        # Local development: Use SQLite (default)
+        DB_PATH = os.path.join(DATA_DIR, "tasks.db")
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY') or "dev-key-change-in-production"
 
+# Email configuration for bug report notifications
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', '587'))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+app.config['DEVELOPER_EMAIL'] = os.environ.get('DEVELOPER_EMAIL', 'developer@example.com')
+
+# Initialize extensions
+mail = Mail(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -43,6 +63,44 @@ login_manager.login_message = 'Please log in to access your tasks.'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def send_bug_report_notification(bug_report):
+    """Send email notification to developers when a bug report is submitted"""
+    try:
+        # Only send emails if email is configured
+        if not app.config.get('MAIL_USERNAME') or not app.config.get('DEVELOPER_EMAIL'):
+            return False
+            
+        msg = Message(
+            subject=f'New Bug Report #{bug_report.id} - {bug_report.bug_type.title()}',
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[app.config['DEVELOPER_EMAIL']]
+        )
+        
+        # Create email body
+        msg.html = f"""
+        <h2>New Bug Report Submitted</h2>
+        <p><strong>Report ID:</strong> #{bug_report.id}</p>
+        <p><strong>User:</strong> {bug_report.user.username} (ID: {bug_report.user.id})</p>
+        <p><strong>Type:</strong> {bug_report.bug_type.title()}</p>
+        <p><strong>Priority:</strong> {bug_report.priority.title()}</p>
+        <p><strong>Submitted:</strong> {bug_report.created_at.strftime('%Y-%m-%d %H:%M:%S')}</p>
+        
+        <h3>Description</h3>
+        <p>{bug_report.description}</p>
+        
+        {f'<h3>Steps to Reproduce</h3><p>{bug_report.steps}</p>' if bug_report.steps else ''}
+        {f'<h3>Expected Behavior</h3><p>{bug_report.expected}</p>' if bug_report.expected else ''}
+        {f'<h3>Actual Behavior</h3><p>{bug_report.actual}</p>' if bug_report.actual else ''}
+        
+        <p><a href="{request.url_root}admin/bugs">View in Admin Panel</a></p>
+        """
+        
+        mail.send(msg)
+        return True
+    except Exception as e:
+        print(f"Failed to send bug report notification: {e}")
+        return False
 
 # Add cache control headers to prevent caching issues
 @app.after_request
@@ -350,7 +408,15 @@ def report():
             )
             db.session.add(bug_report)
             db.session.commit()
-            flash(f"Bug report submitted successfully! We'll look into it. (Report #{bug_report.id})", "success")
+            
+            # Send notification to developers
+            email_sent = send_bug_report_notification(bug_report)
+            
+            if email_sent:
+                flash(f"Bug report submitted successfully! Our development team has been notified. (Report #{bug_report.id})", "success")
+            else:
+                flash(f"Bug report submitted successfully! We'll look into it. (Report #{bug_report.id})", "success")
+                
         except Exception as e:
             db.session.rollback()
             flash("Error submitting bug report. Please try again.", "error")
