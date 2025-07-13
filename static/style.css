@@ -611,9 +611,53 @@ textarea:not(.auth-form textarea):not(.auth-form-fields textarea) {
   color: var(--text-primary);
   border: 1px solid var(--border-primary);
   border-radius: 12px;
-  padding: 0.6rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   transition: background 0.2s ease;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  min-height: 50px;
+  height: 50px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mobile native date/time inputs styling */
+@media (max-width: 768px) {
+  input[type="date"]:not(.auth-form input):not(.auth-form-fields input),
+  input[type="time"]:not(.auth-form input):not(.auth-form-fields input) {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+  }
+
+  /* Style the native date/time picker icons */
+  input[type="date"]:not(.auth-form input):not(.auth-form-fields input)::-webkit-calendar-picker-indicator,
+  input[type="time"]:not(.auth-form input):not(.auth-form-fields input)::-webkit-calendar-picker-indicator {
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* For iOS devices, ensure the native picker opens */
+  input[type="date"]:not(.auth-form input):not(.auth-form-fields input),
+  input[type="time"]:not(.auth-form input):not(.auth-form-fields input) {
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
 .form-fields input[type="text"]:hover,
@@ -927,7 +971,23 @@ form {
   width: 100%;
 }
 
-.form-fields input[type="text"] {
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+.form-fields input[type="text"],
+.form-fields input#due_date,
+.form-fields input#due_time {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -935,17 +995,16 @@ form {
   color: var(--text-primary);
   border: 1px solid var(--border-primary);
   border-radius: 12px;
-  padding: 0.6rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   transition: background 0.2s ease;
-  /* Prevent overflow */
+  min-height: 50px;
   min-width: 0;
-}
-
-.form-fields input#due_date,
-.form-fields input#due_time {
-  font-size: 1rem;
-  padding: 0.6rem 1rem;
+  line-height: 1.2;
+  height: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Make the submit button full width to match combined fields */
@@ -1248,6 +1307,19 @@ body.ios-picker-open {
     min-height: 100vh !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important; /* Prevent horizontal overflow */
+  }
+  
+  /* Stack form fields vertically on mobile */
+  .form-fields {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  /* Ensure form field labels are properly styled on mobile */
+  .form-field label {
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
   }
   
   /* Ensure task items fit properly within mobile container */

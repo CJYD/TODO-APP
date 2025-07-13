@@ -43,23 +43,54 @@ class IOSWheelPicker {
         this.initializePickers();
     }
 
+    // Detect if device is mobile (iOS, Android, etc.)
+    isMobileDevice() {
+        // Check for touch support and mobile user agents
+        const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const mobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const iPadOS = /MacIntel/.test(navigator.platform) && navigator.maxTouchPoints > 1;
+        const smallScreen = window.innerWidth <= 768;
+        
+        return touchDevice && (mobileUserAgent || iPadOS || smallScreen);
+    }
+
     initializePickers() {
         // Initialize date picker
         const dueDateInput = document.getElementById('due_date');
         if (dueDateInput) {
-            dueDateInput.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showDatePicker(dueDateInput);
-            });
+            if (this.isMobileDevice()) {
+                // Use native mobile date picker
+                dueDateInput.type = 'date';
+                dueDateInput.style.cursor = 'pointer';
+                dueDateInput.removeAttribute('readonly');
+                dueDateInput.removeEventListener('click', this.showDatePicker);
+            } else {
+                // Use custom picker for desktop
+                dueDateInput.setAttribute('readonly', 'true');
+                dueDateInput.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showDatePicker(dueDateInput);
+                });
+            }
         }
 
         // Initialize time picker  
         const dueTimeInput = document.getElementById('due_time');
         if (dueTimeInput) {
-            dueTimeInput.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showTimePicker(dueTimeInput);
-            });
+            if (this.isMobileDevice()) {
+                // Use native mobile time picker
+                dueTimeInput.type = 'time';
+                dueTimeInput.style.cursor = 'pointer';
+                dueTimeInput.removeAttribute('readonly');
+                dueTimeInput.removeEventListener('click', this.showTimePicker);
+            } else {
+                // Use custom picker for desktop
+                dueTimeInput.setAttribute('readonly', 'true');
+                dueTimeInput.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showTimePicker(dueTimeInput);
+                });
+            }
         }
     }
 

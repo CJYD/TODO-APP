@@ -9,31 +9,39 @@
 
   <form method="post" class="form">
     <div class="form-fields">
-      <input
-        type="text"
-        name="description"
-        placeholder="Task description…"
-        required
-      >
-      <div class="ios-picker-wrapper">
+      <div class="form-field">
+        <label for="description">Task Description</label>
         <input
           type="text"
-          id="due_date"
-          name="due_date"
-          placeholder="Select date"
-          readonly
-          class="ios-picker-input"
+          id="description"
+          name="description"
+          placeholder="Enter task description…"
+          required
         >
       </div>
-      <div class="ios-picker-wrapper">
-        <input
-          type="text"
-          id="due_time"
-          name="due_time"
-          placeholder="Select time"
-          readonly
-          class="ios-picker-input"
-        >
+      <div class="form-field">
+        <label for="due_date">Due Date</label>
+        <div class="ios-picker-wrapper">
+          <input
+            type="text"
+            id="due_date"
+            name="due_date"
+            placeholder="Select date"
+            class="ios-picker-input"
+          >
+        </div>
+      </div>
+      <div class="form-field">
+        <label for="due_time">Due Time</label>
+        <div class="ios-picker-wrapper">
+          <input
+            type="text"
+            id="due_time"
+            name="due_time"
+            placeholder="Select time"
+            class="ios-picker-input"
+          >
+        </div>
       </div>
     </div>
 
