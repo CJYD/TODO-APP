@@ -463,6 +463,30 @@ def migrate_db():
     except Exception as e:
         return f"Error migrating database: {str(e)}"
 
+@app.route("/db_info")
+def db_info():
+    """Debug route to check database configuration"""
+    database_url = app.config.get("SQLALCHEMY_DATABASE_URI", "Not set")
+    environment_url = os.environ.get('DATABASE_URL', 'Not set')
+    
+    # Determine database type
+    if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
+        db_type = "PostgreSQL"
+    elif database_url.startswith('sqlite:///'):
+        db_type = "SQLite"
+    else:
+        db_type = "Unknown"
+    
+    info = f"""
+    <h2>Database Configuration Info</h2>
+    <p><strong>Database Type:</strong> {db_type}</p>
+    <p><strong>Environment DATABASE_URL:</strong> {'Set' if environment_url != 'Not set' else 'Not set'}</p>
+    <p><strong>SQLAlchemy URI:</strong> {database_url[:50]}...</p>
+    <p><strong>Environment:</strong> {'Production (Render)' if environment_url != 'Not set' else 'Local Development'}</p>
+    """
+    
+    return info
+
 # ─── RUN ─────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
