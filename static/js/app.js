@@ -1017,33 +1017,51 @@ function convertUTCToLocal(utcString) {
 }
 
 function getCountdownString(dueUTC, nowUTC) {
-    if (!dueUTC) return '—';
+    if (!dueUTC || dueUTC === '') return 'No due date';
     const due = convertUTCToLocal(dueUTC);
     const now = convertUTCToLocal(nowUTC);
-    let delta = due - now;
-    if (isNaN(delta)) return '—';
-    if (delta < 0) return 'Overdue';
+    if (isNaN(due.getTime()) || isNaN(now.getTime())) return 'Invalid date';
+    let delta = due.getTime() - now.getTime();
+    if (delta <= 0) return 'Overdue';
     let totalMinutes = Math.floor(delta / 60000);
     let days = Math.floor(totalMinutes / (24 * 60));
     let hours = Math.floor((totalMinutes % (24 * 60)) / 60);
     let mins = totalMinutes % 60;
-    return `${days}d ${hours}h ${mins}m`;
+    let parts = [];
+    if (days > 0) parts.push(days + 'd');
+    if (hours > 0) parts.push(hours + 'h');
+    if (mins > 0) parts.push(mins + 'm');
+    if (parts.length === 0) parts.push('less than 1m');
+    return parts.join(' ');
 }
 
 function updateTaskCountdowns(nowUTC) {
     document.querySelectorAll('.task-item').forEach(function(item) {
         const dueUTC = item.getAttribute('data-due-utc');
         const meta = item.querySelector('.task-meta .task-due');
+        console.log('Task:', item, 'dueUTC:', dueUTC, 'nowUTC:', nowUTC, 'meta:', meta);
         if (meta) {
             meta.textContent = getCountdownString(dueUTC, nowUTC);
+            console.log('Updated countdown:', meta.textContent);
+        } else {
+            console.log('No .task-due element found for this task-item.');
         }
     });
 }
 
 window.addEventListener('DOMContentLoaded', function() {
+    // Initial countdown update using backend UTC
     if (window.now_utc) {
         updateTaskCountdowns(window.now_utc);
     }
+    // Update countdowns every minute using browser's current UTC
+    setInterval(function() {
+        const nowUTC = new Date().toISOString();
+        updateTaskCountdowns(nowUTC);
+    }, 60000); // 60 seconds
+    // Also update immediately on load for accuracy
+    const nowUTC = new Date().toISOString();
+    updateTaskCountdowns(nowUTC);
 });
 
 // Initialize user preferences on page load

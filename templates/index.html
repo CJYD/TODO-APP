@@ -20,6 +20,11 @@
   <!-- Add new -->
   <a href="{{ url_for('add') }}" class="btn">+ Add New Task</a>
 
+  <!-- Set window.now_utc for JS countdowns -->
+  <script>
+    window.now_utc = "{{ now_utc }}";
+  </script>
+
   <!-- Active Tasks Section -->
   <div id="active-section" class="task-section">
     {% if current_filter is string and current_filter == 'today' %}
@@ -32,15 +37,10 @@
     <ol class="task-list">
       {% for t in active_tasks %}
         <li
-          class="task-item{% if t.days is not none and t.days < 0 %} overdue{% elif t.days is not none and t.days < 1 %} due-soon{% endif %}{% if t.done %} completed{% endif %} priority-{{ t.priority if t.priority else 'medium' }}"
-          data-days="{{ t.days if t.days is not none else '' }}"
+          class="task-item priority-{{ t.priority if t.priority else 'medium' }}{% if t.done %} completed{% endif %}"
           data-done="{{ 'true' if t.done else 'false' }}"
           data-priority="{{ t.priority if t.priority else 'medium' }}"
-          data-due-utc="{{ t.due_date.isoformat() if t.due_date else '' }}">
-<script>
-  window.now_utc = "{{ now_utc }}";
-</script>
-
+          data-due-utc="{{ t.due_date.strftime('%Y-%m-%dT%H:%M:%SZ') if t.due_date else '' }}">
           <div class="task-desc" data-id="{{ t.id }}">
             {% if not t.done %}
             <span class="priority-badge priority-{{ t.priority if t.priority else 'medium' }}">
@@ -56,21 +56,10 @@
                 {{ t.description }}
               {% endif %}
             </span>
+            {# Hide UTC debug output, but keep data-due-utc attribute for JS #}
           </div>
-
           <div class="task-meta">
-            <div class="task-due">
-              {% if t.days is not none %}
-                {% if t.days == -1 %}
-                  Overdue
-                {% else %}
-                  {{ t.days }}d {{ t.hours }}h {{ t.mins }}m
-                {% endif %}
-              {% else %}
-                —
-              {% endif %}
-            </div>
-
+            <div class="task-due">...</div>
             <div class="task-actions">
               {% if not t.done %}
                 <a href="{{ url_for('done',   task_id=t.id) }}">Done</a>
@@ -104,12 +93,6 @@
               <s>{{ t.description }}</s>
             </span>
           </div>
-          <div class="task-meta">
-            <div class="task-due"></div>
-            <div class="task-actions">
-              <!-- Removed delete button for completed tasks -->
-            </div>
-          </div>
         </li>
       {% endfor %}
       
@@ -122,3 +105,6 @@
 
 </div>
 {% endblock %}
+<script>
+  window.now_utc = "{{ now_utc }}";
+</script>

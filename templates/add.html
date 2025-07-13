@@ -57,7 +57,20 @@
       </div>
     </div>
 
+    <!-- Hidden field for user's timezone offset (in minutes) -->
+    <input type="hidden" id="tz_offset" name="tz_offset" value="">
     <button type="submit" class="btn full-width">Add Task</button>
+</div>
+
+<script>
+// Set the hidden tz_offset field to the user's current timezone offset in minutes
+document.addEventListener('DOMContentLoaded', function() {
+  var tzOffsetField = document.getElementById('tz_offset');
+  if (tzOffsetField) {
+    tzOffsetField.value = String(new Date().getTimezoneOffset());
+  }
+});
+</script>
   </form>
 </div>
 

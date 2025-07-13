@@ -120,42 +120,7 @@ def index():
     # Use UTC for backend calculations, pass UTC to frontend for local conversion
     now = datetime.utcnow()
     
-    for t in active:
-        if t.due_date:
-            # Calculate time difference
-            delta = t.due_date - now
-            total_seconds = delta.total_seconds()
-            
-            # Check if task is due today or in the future
-            due_date_only = t.due_date.date()
-            today = now.date()
-            
-            if due_date_only < today:
-                # Task is overdue (due on a previous day)
-                t.days = -1
-                t.hours = 0
-                t.mins = 0
-            elif due_date_only == today:
-                # Task is due today - show as due today (0 days) regardless of time
-                t.days = 0
-                if total_seconds > 0:
-                    # Still time left today
-                    total_minutes = int(total_seconds // 60)
-                    t.hours = total_minutes // 60
-                    t.mins = total_minutes % 60
-                else:
-                    # Time has passed but still today
-                    t.hours = 0
-                    t.mins = 0
-            else:
-                # Task is in the future
-                total_minutes = int(total_seconds // 60)
-                t.days = total_minutes // (24 * 60)
-                remaining_minutes = total_minutes % (24 * 60)
-                t.hours = remaining_minutes // 60
-                t.mins = remaining_minutes % 60
-        else:
-            t.days = t.hours = t.mins = None
+    # Remove backend countdown calculations. Frontend will handle countdowns using UTC datetimes.
 
     response = make_response(render_template(
         "index.html",
@@ -178,24 +143,27 @@ def add():
         priority = request.form.get("priority", "medium")
         date_str = request.form.get("due_date", "")
         time_str = request.form.get("due_time", "")
+        tz_offset_str = request.form.get("tz_offset", None)
 
         if desc:
             # parse the new task's due datetime (or None)
             new_due = None
             if date_str:
                 ts = time_str.strip() or "00:00"
-                local_dt = datetime.strptime(f"{date_str} {ts}", "%Y-%m-%d %H:%M")
+                naive_dt = datetime.strptime(f"{date_str} {ts}", "%Y-%m-%d %H:%M")
                 try:
-                    from tzlocal import get_localzone
-                    import datetime as dtmod
-                    local_tz = get_localzone()
-                    print(f"[DEBUG] Parsed local datetime: {local_dt} (timezone: {local_tz})")
-                    local_dt = local_dt.replace(tzinfo=local_tz)
-                    new_due = local_dt.astimezone(dtmod.timezone.utc).replace(tzinfo=None)
-                    print(f"[DEBUG] Converted to UTC: {new_due}")
-                except Exception as e:
-                    print(f"[ERROR] Timezone conversion failed: {e}")
-                    new_due = local_dt
+                    # Use tz_offset from frontend for robust conversion
+                    if tz_offset_str is not None:
+                        tz_offset = int(tz_offset_str)
+                        # tz_offset is in minutes, JS returns positive for UTC-, negative for UTC+
+                        # To get UTC, add offset to local time
+                        new_due = naive_dt + timedelta(minutes=tz_offset)
+                    else:
+                        # Fallback: treat as UTC if offset missing
+                        new_due = naive_dt
+                except Exception:
+                    # Fallback: treat as UTC if conversion fails
+                    new_due = naive_dt
 
             # create the new task (automatic sorting by due_date/created_at)
             task = Task(
