@@ -351,7 +351,7 @@ def settings():
     ).scalar()
     
     completed_tasks = db.session.execute(
-        text("SELECT COUNT(*) FROM tasks WHERE user_id = :user_id AND done = 1"),
+        text("SELECT COUNT(*) FROM tasks WHERE user_id = :user_id AND done = TRUE"),
         {"user_id": current_user.id}
     ).scalar()
     
@@ -450,11 +450,10 @@ def migrate_priority():
     """Add priority field to existing tasks"""
     try:
         # Check if priority column exists
-        result = db.session.execute(text("PRAGMA table_info(tasks)")).fetchall()
-        columns = [row[1] for row in result]
-        
+        # PostgreSQL: check for column existence and add if missing
+        result = db.session.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='tasks' AND column_name='priority'"))
+        columns = [row[0] for row in result]
         if 'priority' not in columns:
-            # Add priority column with default value
             db.session.execute(text("ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium'"))
             db.session.commit()
             return "Priority column added successfully!"
@@ -515,7 +514,7 @@ def api_clear_completed():
     """Clear all completed tasks for the current user"""
     try:
         result = db.session.execute(
-            text("DELETE FROM tasks WHERE user_id = :user_id AND done = 1"),
+            text("DELETE FROM tasks WHERE user_id = :user_id AND done = TRUE"),
             {"user_id": current_user.id}
         )
         db.session.commit()
