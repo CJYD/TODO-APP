@@ -848,6 +848,9 @@ li.completed .task-due {
   overflow: hidden;
   height: 8px;
   margin-bottom: 1.5rem;
+  /* Subtle outline so users can see the full progress bar bounds */
+  border: 1px solid var(--border-primary);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Ensure consistent spacing when progress bar is not present */
