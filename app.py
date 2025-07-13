@@ -19,10 +19,12 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
+SQLALCHEMY_DATABASE_URI = os.environ.get("postgresql://postgres:[tR5tLrBlkoillCe1]@db.ucwjiujcrbpsrq")
+
 # Database configuration - SQLite for simplicity
 DB_PATH = os.path.join(DATA_DIR, "tasks.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
-print(f"Using SQLite database: {DB_PATH}")
+app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
+print(f"Using PostgreSQL database: {SQLALCHEMY_DATABASE_URI}")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY') or "dev-key-change-in-production"
