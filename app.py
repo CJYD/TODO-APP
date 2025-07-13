@@ -19,33 +19,10 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
-# Database configuration - use PostgreSQL in production, SQLite locally
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    # Check if DATABASE_URL contains placeholder values
-    if 'hostname' in DATABASE_URL or 'username' in DATABASE_URL or 'password' in DATABASE_URL or ':port' in DATABASE_URL:
-        print(f"WARNING: DATABASE_URL contains placeholder values: {DATABASE_URL}")
-        print("Falling back to SQLite for safety")
-        # Fall back to SQLite if DATABASE_URL has placeholder values
-        DB_PATH = os.path.join(DATA_DIR, "tasks.db")
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
-    else:
-        # Production: Use PostgreSQL from environment (Render provides this)
-        print(f"Using PostgreSQL from DATABASE_URL")
-        app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
-else:
-    # Local development: Choose between PostgreSQL and SQLite
-    LOCAL_POSTGRES = os.environ.get('USE_LOCAL_POSTGRES', 'false').lower() == 'true'
-    
-    if LOCAL_POSTGRES:
-        # Local PostgreSQL (set USE_LOCAL_POSTGRES=true in your environment)
-        local_db_url = os.environ.get('LOCAL_DATABASE_URL', 
-                                    'postgresql://todo_user:localpass@localhost/todo_local')
-        app.config["SQLALCHEMY_DATABASE_URI"] = local_db_url
-    else:
-        # Local development: Use SQLite (default)
-        DB_PATH = os.path.join(DATA_DIR, "tasks.db")
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+# Database configuration - SQLite for simplicity
+DB_PATH = os.path.join(DATA_DIR, "tasks.db")
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+print(f"Using SQLite database: {DB_PATH}")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY') or "dev-key-change-in-production"
@@ -476,30 +453,13 @@ def migrate_db():
 def db_info():
     """Debug route to check database configuration"""
     database_url = app.config.get("SQLALCHEMY_DATABASE_URI", "Not set")
-    environment_url = os.environ.get('DATABASE_URL', 'Not set')
-    
-    # Determine database type
-    if database_url.startswith('postgresql://') or database_url.startswith('postgres://'):
-        db_type = "PostgreSQL"
-    elif database_url.startswith('sqlite:///'):
-        db_type = "SQLite"
-    else:
-        db_type = "Unknown"
-    
-    # Check for placeholder values in DATABASE_URL
-    has_placeholders = False
-    if environment_url != 'Not set':
-        placeholder_indicators = ['hostname', 'username', 'password', ':port', 'database_name']
-        has_placeholders = any(indicator in environment_url for indicator in placeholder_indicators)
     
     info = f"""
     <h2>Database Configuration Info</h2>
-    <p><strong>Database Type:</strong> {db_type}</p>
-    <p><strong>Environment DATABASE_URL:</strong> {'Set' if environment_url != 'Not set' else 'Not set'}</p>
-    <p><strong>DATABASE_URL has placeholders:</strong> {'Yes' if has_placeholders else 'No'}</p>
-    <p><strong>Raw DATABASE_URL:</strong> {environment_url}</p>
-    <p><strong>SQLAlchemy URI:</strong> {database_url}</p>
-    <p><strong>Environment:</strong> {'Production (Render)' if environment_url != 'Not set' else 'Local Development'}</p>
+    <p><strong>Database Type:</strong> SQLite</p>
+    <p><strong>Database Path:</strong> {database_url}</p>
+    <p><strong>Environment:</strong> Production (Render) - SQLite</p>
+    <p><strong>Note:</strong> Data will reset on each deployment</p>
     """
     
     return info
