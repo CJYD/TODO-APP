@@ -515,29 +515,24 @@ class IOSWheelPicker {
         // Mouse wheel scrolling support
         container.addEventListener('wheel', (e) => {
             e.preventDefault();
-            
             const currentTransform = container.style.transform;
             const currentOffset = currentTransform ? parseInt(currentTransform.match(/-?\d+/)[0]) : 0;
-            
-            // Determine scroll direction and amount
             const isMobile = window.innerWidth <= 480;
             const itemHeight = isMobile ? 36 : 48;
             const centerOffset = isMobile ? 72 : 96;
-            const scrollDelta = e.deltaY > 0 ? itemHeight : -itemHeight; // One item height per scroll
+            // Reverse scroll direction for desktop only and slow down
+            let scrollDelta;
+            if (isMobile) {
+                scrollDelta = e.deltaY > 0 ? itemHeight : -itemHeight;
+            } else {
+                scrollDelta = (e.deltaY > 0 ? -itemHeight : itemHeight) / 8; // slower scroll on desktop
+            }
             const newOffset = currentOffset + scrollDelta;
-            
-            // Calculate bounds
             const minOffset = -(items.length - 1) * itemHeight + centerOffset;
             const maxOffset = centerOffset;
-            
-            // Clamp the offset within bounds
             const clampedOffset = Math.max(minOffset, Math.min(newOffset, maxOffset));
-            
-            // Apply smooth transition
             container.style.transition = 'transform 0.2s ease-out';
             container.style.transform = `translateY(${clampedOffset}px)`;
-            
-            // Update selection after transition
             setTimeout(() => {
                 updateSelection();
                 container.style.transition = '';
@@ -1012,4 +1007,9 @@ function applySortPreference(sortBy) {
 // Initialize user preferences on page load
 document.addEventListener('DOMContentLoaded', function() {
     applyUserPreferences();
+    initializeFiltering();
+    initializeTaskInteractions();
+    
+    // Initialize iOS-style wheel picker for date/time inputs
+    new IOSWheelPicker();
 });
