@@ -74,19 +74,26 @@
   transition: all 0.2s ease;
   cursor: pointer;
   font-family: inherit;
+  min-height: 50px;
+  height: 50px;
+  box-sizing: border-box;
 }
 
-.priority-select:hover {
+.priority-select:hover,
+.priority-select:focus,
+.back-link:hover,
+.back-link:focus,
+.filter-btn:hover,
+.filter-btn:focus,
+.ios-picker-input:hover,
+.ios-picker-input:focus,
+#description:hover,
+#description:focus {
   background: var(--bg-secondary) !important;
   border-color: #007aff !important;
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
-}
-
-.priority-select:focus {
-  outline: none;
-  background: var(--bg-secondary) !important;
-  border-color: #007aff !important;
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+  color: var(--text-primary) !important;
+  outline: none !important;
 }
 
 .priority-select option {

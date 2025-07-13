@@ -306,36 +306,6 @@ body {
   box-shadow: 0 20px 40px var(--shadow-primary);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
-/*
-.auth-container::after, .auth-container::before {
-  content: '';
-  position: absolute;
-  height: calc(100% + 6px);
-  width: calc(100% + 6px);
-  background-image: conic-gradient(from var(--angle),
-    #ff0080 0%,
-    #ff0040 12.5%,
-    #ff4000 25%,
-    #ff8000 37.5%,
-    #ffff00 50%,
-    #80ff00 62.5%,
-    #00ff40 75%,
-    #0080ff 87.5%,
-    #ff0080 100%
-);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    border-radius: 20px;
-    animation: 5s spin linear infinite;
-}
-
-.auth-container::before {
-  filter: blur(1.5rem);
-  opacity: 0.5;
-}
-  */
 
 .auth-header {
   text-align: center;
@@ -556,62 +526,6 @@ h2 { font-size: 1.5rem; }
   initial-value: 0deg;
   inherits: false;
 }
-
-/*
-.container::after, .container::before{
-  content: '';
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  background-image: conic-gradient(from var(--angle),
-    #ff0080 0%,
-    #ff0040 12.5%,
-    #ff4000 25%,
-    #ff8000 37.5%,
-    #ffff00 50%,
-    #80ff00 62.5%,
-    #00ff40 75%,
-    #0080ff 87.5%,
-    #ff0080 100%
-);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: -1;
-    padding: 3px;
-    border-radius: 20px;
-    animation: 5s spin linear infinite;
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-
-.container::before {
-  filter: blur(1.5rem);
-  opacity: 0.5;
-  transform: translate(-50%, -50%) scale(1.02);
-}
-
-@keyframes spin {
-  from{
-    --angle: 0deg;
-  }
-  to {
-    --angle: 360deg;
-  }
-}
-
-@keyframes subtleGlow {
-  0%, 100% {
-    background-position: 0% 50%;
-    opacity: 0.3;
-  }
-  50% {
-    background-position: 100% 50%;
-    opacity: 0.1;
-  }
-}
-  */
 
 /* Form fields and inputs for task creation (not auth forms) */
 .form-fields input[type="text"],
@@ -908,12 +822,17 @@ li.completed .task-due {
   transition: background 0.2s ease;
 }
 
-.filter-btn.active,
+.filter-btn-active,
+.filter-btn-active:hover,
+.filter-btn-active:focus,
+.filter-btn.focus,
 .filter-btn:hover {
-  background: var(--border-primary);
-  color: var(--text-primary);
-  transform: scale(1.05);
-}
+    background: var(--bg-secondary) !important;
+    border-color: #007aff !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+    color: var(--text-primary) !important;
+    outline: none !important;
+    }
 
 /* Ensure "Add new task" button has consistent top margin */
 a.btn {
@@ -935,6 +854,7 @@ a.btn {
   width: 100%;
   text-align: center;
 }
+
 .progress-bar {
   height: 100%;
   background: linear-gradient(
@@ -1420,7 +1340,7 @@ body.ios-picker-open {
     padding: 0.4rem 0.6rem !important;
     font-size: 0.8rem !important;
   }
-  }
+  
   
   /* Ensure task list has proper spacing on mobile */
   .task-list {
@@ -1428,29 +1348,6 @@ body.ios-picker-open {
     padding: 0 !important;
     margin: 0 !important;
     box-sizing: border-box !important;
-  }
-  
-  /* Remove rainbow animations on mobile for all buttons except progress bar */
-  a.btn::before,
-  .btn.full-width::before,
-  .add-submit::before,
-  .back-link:before,
-  .filter-btn:before,
-  input[type="text"]:not(.auth-form input):not(.auth-form-fields input):before,
-  input[type="date"]:not(.auth-form input):not(.auth-form-fields input):before,
-  input[type="time"]:not(.auth-form input):not(.auth-form-fields input):before,
-  textarea:not(.auth-form textarea):not(.auth-form-fields textarea):before,
-  .task-actions a[href*="/remove"]:before,
-  .task-actions a[href*="/done"]:before {
-    display: none !important;
-    animation: none !important;
-  }
-  
-  /* Remove container animations on mobile */
-  .container::after,
-  .container::before {
-    display: none !important;
-    animation: none !important;
   }
   
   /* Simplified hover effects on mobile */
@@ -1466,12 +1363,6 @@ body.ios-picker-open {
     background: var(--bg-secondary) !important;
     transform: none !important;
   }
-  
-  /* Keep progress bar animation */
-  .progress-bar {
-    animation: seamlessFlow 5s linear infinite !important;
-  }
-}
 
 /* Light mode support for report page forms */
 [data-theme="light"] .form select,
@@ -1913,5 +1804,3 @@ body.compact-mode .setting-description {
   white-space: normal;
   word-wrap: break-word;
 }
-
-

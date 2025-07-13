@@ -711,10 +711,17 @@ function setElementVisibility(element, visible) {
 
 // Filtering
 function initializeFiltering() {
+    // Ensure default filter is active on page load
+    const defaultFilterBtn = document.querySelector('.filter-btn[data-filter="all"]');
+    if (defaultFilterBtn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'filter-btn-active'));
+        defaultFilterBtn.classList.add('active', 'filter-btn-active');
+    }
+
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'filter-btn-active'));
+            btn.classList.add('active', 'filter-btn-active');
             
             const filter = btn.dataset.filter;
             const progressBar = document.getElementById('progress-bar');
