@@ -832,7 +832,7 @@ li.completed .task-due {
     box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
     color: var(--text-primary) !important;
     outline: none !important;
-    }
+}
 
 /* Ensure "Add new task" button has consistent top margin */
 a.btn {
