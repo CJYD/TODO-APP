@@ -675,7 +675,6 @@ function initializeFiltering() {
             // Handle progress bar visibility (only show on 'all' filter)
             if (progressBar) {
                 const shouldShow = filter === 'all';
-                console.log('Filter changed to:', filter, 'shouldShow:', shouldShow);
                 
                 // Use simple approach for both mobile and desktop
                 if (shouldShow) {
@@ -687,8 +686,6 @@ function initializeFiltering() {
                     progressBar.style.setProperty('visibility', 'hidden', 'important');
                     progressBar.classList.add('hidden-mobile');
                 }
-                
-                console.log(`Progress bar ${shouldShow ? 'shown' : 'hidden'} for filter: ${filter}`);
                 
                 // Extra safety check for "All" filter
                 if (filter === 'all') {
@@ -933,33 +930,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize progress bar visibility (show by default since "All" is active)
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
-        console.log('Progress bar element found:', progressBar);
-        const progressBarInner = progressBar.querySelector('.progress-bar');
-        console.log('Progress bar inner width:', progressBarInner ? progressBarInner.style.width : 'N/A');
-        console.log('Progress bar container display:', window.getComputedStyle(progressBar).display);
-        console.log('Progress bar container visibility:', window.getComputedStyle(progressBar).visibility);
-        console.log('Progress bar container height:', window.getComputedStyle(progressBar).height);
-        console.log('Progress bar rect:', progressBar.getBoundingClientRect());
-        
         // Force show progress bar initially
         progressBar.style.setProperty('display', 'block', 'important');
         progressBar.style.setProperty('visibility', 'visible', 'important');
         progressBar.classList.remove('hidden-mobile');
         
-        console.log('Progress bar forced visible');
-        console.log('After forcing - display:', window.getComputedStyle(progressBar).display);
-        console.log('After forcing - visibility:', window.getComputedStyle(progressBar).visibility);
-        console.log('After forcing - rect:', progressBar.getBoundingClientRect());
-        
         // Ensure progress bar stays visible
         ensureProgressBarVisibility();
         
-        // Also run it periodically to catch any dynamic changes
+        // Run it periodically to catch any dynamic changes
         setInterval(ensureProgressBarVisibility, 1000);
-    } else {
-        console.log('Progress bar element not found!');
     }
-    
-    // Continuously ensure progress bar visibility
-    setInterval(ensureProgressBarVisibility, 1000);
 });

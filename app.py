@@ -1,7 +1,7 @@
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 
-from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify, flash, session
+from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify, flash
 from sqlalchemy import func
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
