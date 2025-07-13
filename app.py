@@ -19,7 +19,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
-SQLALCHEMY_DATABASE_URI = os.environ.get("postgresql://postgres:[tR5tLrBlkoillCe1]@db.ucwjiujcrbpsrq")
+SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
 # Database configuration - SQLite for simplicity
 DB_PATH = os.path.join(DATA_DIR, "tasks.db")
