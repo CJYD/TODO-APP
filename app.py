@@ -13,16 +13,10 @@ from cleanup import cleanup_completed_tasks, get_cleanup_stats
 
 # ─── Setup ────────────────────────────────────────────────────────────────
 
-BASEDIR  = os.path.abspath(os.path.dirname(__file__))
-DATA_DIR = os.path.join(BASEDIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
 
 app = Flask(__name__)
 
 SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
-
-# Database configuration - SQLite for simplicity
-DB_PATH = os.path.join(DATA_DIR, "tasks.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URI
 print(f"Using PostgreSQL database: {SQLALCHEMY_DATABASE_URI}")
 
@@ -243,32 +237,33 @@ def run_cleanup_days(days):
 def auto_cleanup():
     """Automatically run cleanup if it's been more than 24 hours since last cleanup"""
     try:
-        # Check if cleanup marker file exists
-        cleanup_marker = os.path.join(DATA_DIR, 'last_cleanup.txt')
+        # Use a database marker instead of a file for last cleanup
+        marker_key = 'last_cleanup'
+        from sqlalchemy import text
+        # Create a simple settings table if not exists
+        db.session.execute(text("""
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """))
+        db.session.commit()
+
+        result = db.session.execute(text("SELECT value FROM app_settings WHERE key = :key"), {"key": marker_key}).fetchone()
         should_cleanup = True
-        
-        if os.path.exists(cleanup_marker):
-            with open(cleanup_marker, 'r') as f:
-                last_cleanup_str = f.read().strip()
-                try:
-                    last_cleanup = datetime.fromisoformat(last_cleanup_str)
-                    # Only cleanup if it's been more than 24 hours
-                    if datetime.now() - last_cleanup < timedelta(hours=24):
-                        should_cleanup = False
-                except ValueError:
-                    # Invalid date format, run cleanup
-                    pass
-        
+        if result and result[0]:
+            try:
+                last_cleanup = datetime.fromisoformat(result[0])
+                if datetime.now() - last_cleanup < timedelta(hours=24):
+                    should_cleanup = False
+            except ValueError:
+                pass
         if should_cleanup:
-            count = cleanup_completed_tasks(7)  # Clean tasks older than 7 days
-            
-            # Update cleanup marker
-            with open(cleanup_marker, 'w') as f:
-                f.write(datetime.now().isoformat())
-            
+            count = cleanup_completed_tasks(7)
+            db.session.execute(text("REPLACE INTO app_settings (key, value) VALUES (:key, :value)"), {"key": marker_key, "value": datetime.now().isoformat()})
+            db.session.commit()
             if count > 0:
                 print(f"Auto-cleanup: Removed {count} old completed tasks")
-    
     except Exception as e:
         print(f"Auto-cleanup error: {e}")
 
@@ -469,15 +464,13 @@ def migrate_priority():
 def db_info():
     """Debug route to check database configuration"""
     database_url = app.config.get("SQLALCHEMY_DATABASE_URI", "Not set")
-    
     info = f"""
     <h2>Database Configuration Info</h2>
-    <p><strong>Database Type:</strong> SQLite</p>
-    <p><strong>Database Path:</strong> {database_url}</p>
-    <p><strong>Environment:</strong> Production (Render) - SQLite</p>
-    <p><strong>Note:</strong> Data will reset on each deployment</p>
+    <p><strong>Database Type:</strong> PostgreSQL (Supabase)</p>
+    <p><strong>Database URL:</strong> {database_url}</p>
+    <p><strong>Environment:</strong> Production (Render/Supabase)</p>
+    <p><strong>Note:</strong> Data is persistent and cloud-hosted.</p>
     """
-    
     return info
 
 # ─── API Endpoints for Settings ─────────────────────────────────────────
