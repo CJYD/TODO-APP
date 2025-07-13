@@ -176,6 +176,7 @@ def index():
 def add():
     if request.method == "POST":
         desc     = request.form["description"].strip()
+        priority = request.form.get("priority", "medium")
         date_str = request.form.get("due_date", "")
         time_str = request.form.get("due_time", "")
 
@@ -189,6 +190,7 @@ def add():
             # create the new task (automatic sorting by due_date/created_at)
             task = Task(
                 description=desc,
+                priority=priority,
                 due_date=new_due,
                 user_id=current_user.id
             )
@@ -463,6 +465,25 @@ def migrate_db():
         return "Database migrated successfully! BugReport table created."
     except Exception as e:
         return f"Error migrating database: {str(e)}"
+
+@app.route("/migrate_priority")
+def migrate_priority():
+    """Add priority field to existing tasks"""
+    try:
+        # Check if priority column exists
+        result = db.session.execute(text("PRAGMA table_info(tasks)")).fetchall()
+        columns = [row[1] for row in result]
+        
+        if 'priority' not in columns:
+            # Add priority column with default value
+            db.session.execute(text("ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium'"))
+            db.session.commit()
+            return "Priority column added successfully!"
+        else:
+            return "Priority column already exists!"
+    except Exception as e:
+        db.session.rollback()
+        return f"Migration error: {str(e)}"
 
 @app.route("/db_info")
 def db_info():

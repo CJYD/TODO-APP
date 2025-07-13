@@ -20,6 +20,18 @@
         >
       </div>
       <div class="form-field">
+        <label for="priority">Priority</label>
+        <select
+          id="priority"
+          name="priority"
+          class="priority-select"
+        >
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="form-field">
         <label for="due_date">Due Date</label>
         <div class="ios-picker-wrapper">
           <input
@@ -48,4 +60,62 @@
     <button type="submit" class="btn full-width">Add Task</button>
   </form>
 </div>
+
+<style>
+/* Priority select styling */
+.priority-select {
+  width: 100%;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.priority-select:hover {
+  background: var(--bg-secondary) !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+.priority-select:focus {
+  outline: none;
+  background: var(--bg-secondary) !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+.priority-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+</style>
+
+<script>
+// Load default priority from settings
+document.addEventListener('DOMContentLoaded', function() {
+  const defaultPriority = localStorage.getItem('settings-default-priority') || 'medium';
+  const prioritySelect = document.getElementById('priority');
+  if (prioritySelect) {
+    prioritySelect.value = defaultPriority;
+  }
+  
+  // Load default time from settings
+  const defaultTime = localStorage.getItem('settings-default-time') || '17:00';
+  const timeInput = document.getElementById('due_time');
+  if (timeInput && !timeInput.value) {
+    // Only set default if user hasn't selected a time
+    timeInput.addEventListener('focus', function() {
+      if (!this.value) {
+        this.value = defaultTime;
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

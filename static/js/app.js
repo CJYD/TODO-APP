@@ -634,15 +634,28 @@ class IOSWheelPicker {
     }
 }
 
-// Task interactions
+// Update the existing task interactions to work with priority badges
 function initializeTaskInteractions() {
     document.querySelectorAll('.task-desc').forEach(div => {
-        div.addEventListener('click', () => {
+        div.addEventListener('click', (e) => {
             if (div.parentElement.dataset.done === 'true') return;
             if (div.classList.contains('editing')) return;
             
+            const textElement = div.querySelector('.task-text');
+            if (!textElement) return;
+            
             const id = div.dataset.id;
-            const full = div.textContent.trim();
+            
+            // Store the priority badge element if it exists
+            const priorityBadge = div.querySelector('.priority-badge');
+            const priorityBadgeHTML = priorityBadge ? priorityBadge.outerHTML : '';
+            
+            // Get text content excluding priority badge
+            let textContent = textElement.textContent.trim();
+            if (priorityBadge) {
+                textContent = textContent.replace(priorityBadge.textContent.trim(), '').trim();
+            }
+            const full = textContent;
             const prefix = (full.match(/^(\d+\.)\s*/)||[])[1]||'';
             const oldText = full.replace(/^\d+\.\s*/, '');
 
@@ -663,7 +676,12 @@ function initializeTaskInteractions() {
                     body: JSON.stringify({description:nv})
                 }).then(()=>{
                     div.classList.remove('editing');
-                    div.textContent = `${prefix} ${nv}`;
+                    // Restore content with priority badge and text wrapper
+                    if (priorityBadgeHTML) {
+                        div.innerHTML = priorityBadgeHTML + `<span class="task-text" title="${nv}">${prefix} ${nv}</span>`;
+                    } else {
+                        div.innerHTML = `<span class="task-text" title="${nv}">${prefix} ${nv}</span>`;
+                    }
                 });
             };
             
@@ -672,7 +690,12 @@ function initializeTaskInteractions() {
                 if (e.key==='Enter') inp.blur();
                 if (e.key==='Escape') {
                     div.classList.remove('editing');
-                    div.textContent = full;
+                    // Restore original content with priority badge and text wrapper
+                    if (priorityBadgeHTML) {
+                        div.innerHTML = priorityBadgeHTML + `<span class="task-text" title="${full}">${full}</span>`;
+                    } else {
+                        div.innerHTML = `<span class="task-text" title="${full}">${full}</span>`;
+                    }
                 }
             });
         });
@@ -902,74 +925,78 @@ function togglePassword(inputId) {
     }
 }
 
-// Dark mode toggle functionality
-function toggleTheme() {
-    const body = document.body;
-    const isDark = body.getAttribute('data-theme') === 'dark';
-    
-    if (isDark) {
-        body.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-        updateThemeToggleUI(false);
-    } else {
-        body.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-        updateThemeToggleUI(true);
-    }
-}
+// Note: Theme switching is now handled in the Settings page
+// The theme initialization is handled by applyUserPreferences() function above
 
-function updateThemeToggleUI(isDark) {
-    const themeIconDark = document.querySelector('.theme-icon-dark');
-    const themeIconLight = document.querySelector('.theme-icon-light');
-    const themeText = document.querySelector('.theme-text');
+function applyUserPreferences() {
+    // Apply theme
+    const savedTheme = localStorage.getItem('settings-theme') || 'system';
+    setTheme(savedTheme);
     
-    if (isDark) {
-        themeIconDark.style.display = 'none';
-        themeIconLight.style.display = 'block';
-        themeText.textContent = 'Light Mode';
-    } else {
-        themeIconDark.style.display = 'block';
-        themeIconLight.style.display = 'none';
-        themeText.textContent = 'Dark Mode';
-    }
-}
-
-// Initialize theme on page load
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Apply compact mode
+    const compactMode = localStorage.getItem('settings-compact-mode') === 'true';
+    document.body.classList.toggle('compact-mode', compactMode);
     
-    // Default to dark theme if no preference is saved, or use saved preference
-    const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-    
-    document.body.setAttribute('data-theme', shouldUseDark ? 'dark' : 'light');
-    updateThemeToggleUI(shouldUseDark);
-}
-
-// Run theme initialization when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeTheme);
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize custom iOS wheel pickers
-    new IOSWheelPicker();
-    
-    // Initialize other components
-    initializeTaskInteractions();
-    initializeFiltering();
-    
-    // Initialize progress bar visibility (show by default since "All" is active, if it exists)
-    const progressBar = document.getElementById('progress-bar');
-    if (progressBar) {
-        // Force show progress bar initially
-        progressBar.style.setProperty('display', 'block', 'important');
-        progressBar.style.setProperty('visibility', 'visible', 'important');
-        progressBar.classList.remove('hidden-mobile');
+    // Apply auto-hide completed tasks
+    const autoHideCompleted = localStorage.getItem('settings-auto-hide-completed') === 'true';
+    if (autoHideCompleted) {
+        const completedSection = document.getElementById('completed-section');
+        const completedTasks = document.querySelectorAll('.task-item.completed');
         
-        // Ensure progress bar stays visible
-        ensureProgressBarVisibility();
-        
-        // Run it periodically to catch any dynamic changes
-        setInterval(ensureProgressBarVisibility, 1000);
+        // Hide completed tasks older than 7 days
+        completedTasks.forEach(task => {
+            const taskElement = task;
+            // You could add logic here to check task completion date
+            // For now, just hide if auto-hide is enabled
+        });
     }
-});
+    
+    // Apply sort preference
+    const sortPreference = localStorage.getItem('settings-sort-preference') || 'due_date';
+    applySortPreference(sortPreference);
+}
+
+function setTheme(theme) {
+    if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', systemTheme);
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+}
+
+function applySortPreference(sortBy) {
+    const taskLists = document.querySelectorAll('.task-list');
+    
+    taskLists.forEach(list => {
+        const tasks = Array.from(list.querySelectorAll('.task-item:not(.no-tasks)'));
+        
+        tasks.sort((a, b) => {
+            switch(sortBy) {
+                case 'priority':
+                    const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+                    const aPriority = priorityOrder[a.dataset.priority] || 2;
+                    const bPriority = priorityOrder[b.dataset.priority] || 2;
+                    return bPriority - aPriority; // Higher priority first
+                    
+                case 'alphabetical':
+                    const aText = a.querySelector('.task-desc').textContent.trim();
+                    const bText = b.querySelector('.task-desc').textContent.trim();
+                    return aText.localeCompare(bText);
+                    
+                case 'created':
+                    // Would need creation timestamp, fallback to DOM order
+                    return 0;
+                    
+                case 'due_date':
+                default:
+                    const aDays = parseFloat(a.dataset.days) || Infinity;
+                    const bDays = parseFloat(b.dataset.days) || Infinity;
+                    return aDays - bDays; // Sooner due dates first
+            }
+        });
+        
+        // Reorder DOM elements
+        tasks.forEach(task => list.appendChild(task));
+    });
+}

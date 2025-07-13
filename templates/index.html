@@ -32,35 +32,47 @@
     <ol class="task-list">
       {% for t in active_tasks %}
         <li
-          class="task-item{% if t.days is not none and t.days < 0 %} overdue{% elif t.days is not none and t.days < 1 %} due-soon{% endif %}{% if t.done %} completed{% endif %}"
+          class="task-item{% if t.days is not none and t.days < 0 %} overdue{% elif t.days is not none and t.days < 1 %} due-soon{% endif %}{% if t.done %} completed{% endif %} priority-{{ t.priority if t.priority else 'medium' }}"
           data-days="{{ t.days if t.days is not none else '' }}"
-          data-done="{{ 'true' if t.done else 'false' }}">
+          data-done="{{ 'true' if t.done else 'false' }}"
+          data-priority="{{ t.priority if t.priority else 'medium' }}">
 
-          <div class="task-desc">
-            {% if t.done %}
-              <s>{{ t.description }}</s>
-            {% else %}
-              {{ t.description }}
-            {% endif %}
-          </div>
-
-          <div class="task-due">
-            {% if t.days is not none %}
-              {% if t.days == -1 %}
-                Overdue
-              {% else %}
-                {{ t.days }}d {{ t.hours }}h {{ t.mins }}m
-              {% endif %}
-            {% else %}
-              —
-            {% endif %}
-          </div>
-
-          <div class="task-actions">
+          <div class="task-desc" data-id="{{ t.id }}">
             {% if not t.done %}
-              <a href="{{ url_for('done',   task_id=t.id) }}">Done</a>
+            <span class="priority-badge priority-{{ t.priority if t.priority else 'medium' }}">
+              {% if t.priority == 'high' %}HIGH
+              {% elif t.priority == 'low' %}LOW
+              {% else %}MED{% endif %}
+            </span>
             {% endif %}
-            <a href="{{ url_for('remove', task_id=t.id) }}">Delete</a>
+            <span class="task-text" title="{{ t.description }}">
+              {% if t.done %}
+                <s>{{ t.description }}</s>
+              {% else %}
+                {{ t.description }}
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="task-meta">
+            <div class="task-due">
+              {% if t.days is not none %}
+                {% if t.days == -1 %}
+                  Overdue
+                {% else %}
+                  {{ t.days }}d {{ t.hours }}h {{ t.mins }}m
+                {% endif %}
+              {% else %}
+                —
+              {% endif %}
+            </div>
+
+            <div class="task-actions">
+              {% if not t.done %}
+                <a href="{{ url_for('done',   task_id=t.id) }}">Done</a>
+              {% endif %}
+              <a href="{{ url_for('remove', task_id=t.id) }}">Delete</a>
+            </div>
           </div>
         </li>
       {% endfor %}
@@ -82,11 +94,17 @@
     <h2>Completed Tasks</h2>
     <ol class="task-list">
       {% for t in completed_tasks %}
-        <li class="task-item completed" data-done="true">
-          <div class="task-desc"><s>{{ t.description }}</s></div>
-          <div class="task-due"></div>
-          <div class="task-actions">
-            <a href="{{ url_for('remove', task_id=t.id) }}" class="btn-action">Delete</a>
+        <li class="task-item completed priority-{{ t.priority if t.priority else 'medium' }}" data-done="true" data-priority="{{ t.priority if t.priority else 'medium' }}">
+          <div class="task-desc" data-id="{{ t.id }}">
+            <span class="task-text" title="{{ t.description }}">
+              <s>{{ t.description }}</s>
+            </span>
+          </div>
+          <div class="task-meta">
+            <div class="task-due"></div>
+            <div class="task-actions">
+              <a href="{{ url_for('remove', task_id=t.id) }}" class="btn-action">Delete</a>
+            </div>
           </div>
         </li>
       {% endfor %}
