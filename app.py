@@ -118,6 +118,7 @@ def index():
         active_tasks=active,
         completed_tasks=completed,
         pct_done=pct_done,
+        has_completed_tasks=len(completed) > 0,
     ))
     
     # Additional cache busting for this route specifically

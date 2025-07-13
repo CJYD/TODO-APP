@@ -10,10 +10,12 @@
     <button class="filter-btn"          data-filter="completed">Done</button>
   </div>
 
-  <!-- Progress bar (only shown on 'All' filter) -->
+  <!-- Progress bar (only shown on 'All' filter when there are completed tasks) -->
+  {% if has_completed_tasks %}
   <div class="progress" id="progress-bar">
     <div class="progress-bar" style="width: {{ pct_done }}%"></div>
   </div>
+  {% endif %}
 
   <!-- Add new -->
   <a href="{{ url_for('add') }}" class="btn">+ Add new task</a>

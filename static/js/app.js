@@ -672,7 +672,7 @@ function initializeFiltering() {
             const activeSection = document.getElementById('active-section');
             const completedSection = document.getElementById('completed-section');
             
-            // Handle progress bar visibility (only show on 'all' filter)
+            // Handle progress bar visibility (only show on 'all' filter and if it exists)
             if (progressBar) {
                 const shouldShow = filter === 'all';
                 
@@ -828,7 +828,7 @@ function initializeFiltering() {
     });
 }
 
-// Function to ensure progress bar is always visible when on "All" filter
+// Function to ensure progress bar is always visible when on "All" filter (if it exists)
 function ensureProgressBarVisibility() {
     const progressBar = document.getElementById('progress-bar');
     const activeFilter = document.querySelector('.filter-btn.active');
@@ -927,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTaskInteractions();
     initializeFiltering();
     
-    // Initialize progress bar visibility (show by default since "All" is active)
+    // Initialize progress bar visibility (show by default since "All" is active, if it exists)
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
         // Force show progress bar initially

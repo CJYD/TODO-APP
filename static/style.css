@@ -546,6 +546,7 @@ h2 { font-size: 1.5rem; }
   inherits: false;
 }
 
+/*
 .container::after, .container::before{
   content: '';
   position: absolute;
@@ -599,6 +600,7 @@ h2 { font-size: 1.5rem; }
     opacity: 0.1;
   }
 }
+  */
 
 /* Form fields and inputs for task creation (not auth forms) */
 .form-fields input[type="text"],
@@ -796,11 +798,21 @@ li.completed .task-due {
 }
 
 /* 10) Filter bar & progress (unchanged) */
+.progress {
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 8px;
+  margin-bottom: 1.5rem;
+}
+
+/* Ensure consistent spacing when progress bar is not present */
 .filter-bar {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
+
 .filter-btn {
   background: var(--bg-secondary);
   color: var(--text-primary);
@@ -810,6 +822,7 @@ li.completed .task-due {
   cursor: pointer;
   transition: background 0.2s ease;
 }
+
 .filter-btn.active,
 .filter-btn:hover {
   background: var(--border-primary);
@@ -817,12 +830,25 @@ li.completed .task-due {
   transform: scale(1.05);
 }
 
-.progress {
-  background: var(--bg-secondary);
-  border-radius: 10px;
-  overflow: hidden;
-  height: 8px;
+/* Ensure "Add new task" button has consistent top margin */
+a.btn {
+  display: inline-block;
+  background: #007aff;
+  color: #ffffff;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 0;
   margin-bottom: 1.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  text-align: center;
 }
 .progress-bar {
   height: 100%;
