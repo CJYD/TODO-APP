@@ -16,13 +16,20 @@ BASEDIR  = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(BASEDIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-DB_PATH    = os.path.join(DATA_DIR, "tasks.db")
-SQLITE_URI = f"sqlite:///{DB_PATH}"
-
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"]        = SQLITE_URI
+
+# Database configuration - use PostgreSQL in production, SQLite locally
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    # Production: Use PostgreSQL from environment (Render provides this)
+    app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+else:
+    # Local development: Use SQLite
+    DB_PATH = os.path.join(DATA_DIR, "tasks.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SECRET_KEY"] = "your-secret-key-change-this-in-production"
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY') or "dev-key-change-in-production"
 
 db.init_app(app)
 migrate = Migrate(app, db)
