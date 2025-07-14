@@ -82,33 +82,5 @@
 
 </div>
 
-<style>
-/* Form styling for report page */
-.form select:hover,
-.form textarea:hover {
-  background: var(--bg-secondary) !important;
-  border-color: #007aff !important;
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
-}
-
-.form select:focus,
-.form textarea:focus {
-  outline: none;
-  background: var(--bg-secondary) !important;
-  border-color: #007aff !important;
-  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
-}
-
-.form select option {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-/* Mobile responsive adjustments */
-@media (max-width: 768px) {
-  .form-fields[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-  }
-}
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/report.css') }}?v={{ range(1000000, 9999999) | random }}">
 {% endblock %}

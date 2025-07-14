@@ -1,0 +1,37 @@
+/* Add Task Page Custom Styles */
+.priority-select {
+  width: 100%;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 50px;
+  height: 50px;
+  box-sizing: border-box;
+}
+
+.priority-select:hover,
+.priority-select:focus,
+.back-link:hover,
+.back-link:focus,
+.ios-picker-input:hover,
+.ios-picker-input:focus,
+#description:hover,
+#description:focus {
+  background: var(--bg-secondary) !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+  color: var(--text-primary) !important;
+  outline: none !important;
+}
+
+.priority-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
