@@ -1,14 +1,21 @@
 // Profile dropdown functionality
 function toggleProfileDropdown() {
     const dropdown = document.getElementById('profileDropdown');
-    const button = dropdown.previousElementSibling;
-    
-    if (dropdown.classList.contains('show')) {
-        dropdown.classList.remove('show');
-        button.setAttribute('aria-expanded', 'false');
-    } else {
-        dropdown.classList.add('show');
-        button.setAttribute('aria-expanded', 'true');
+    const button = document.querySelector('.profile-button');
+    if (!dropdown || !button) return;
+    const expanded = dropdown.classList.contains('show');
+    dropdown.classList.toggle('show', !expanded);
+    button.setAttribute('aria-expanded', (!expanded).toString());
+    if (!expanded) {
+        setTimeout(() => {
+            document.addEventListener('click', function closeProfile(e) {
+                if (!e.target.closest('.profile-dropdown')) {
+                    dropdown.classList.remove('show');
+                    button.setAttribute('aria-expanded', 'false');
+                    document.removeEventListener('click', closeProfile);
+                }
+            });
+        }, 0);
     }
 }
 
@@ -787,6 +794,31 @@ function initializeTaskInteractions() {
             });
         });
     });
+}
+
+// Regular task actions functionality
+function toggleRegularActions(taskId) {
+    const menu = document.getElementById(`regular-actions-${taskId}`);
+    const allMenus = document.querySelectorAll('.regular-actions-menu');
+    // Close all other menus
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.classList.remove('show');
+        }
+    });
+    // Toggle the clicked menu
+    menu.classList.toggle('show');
+    // Close menu when clicking outside
+    if (menu.classList.contains('show')) {
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.regular-actions-container')) {
+                    menu.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 0);
+    }
 }
 
 // Helper function for controlling element visibility with CSS classes
