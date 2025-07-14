@@ -72,6 +72,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* 2) Body & centering */
@@ -87,6 +89,8 @@ body {
   margin: 0;
   padding: 0;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Authentication header bar */
@@ -105,6 +109,7 @@ body {
   z-index: 1000;
   border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.3s ease;
+  opacity: 0.9;
 }
 
 .app-title {
@@ -137,18 +142,25 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: none;
-  border: none;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
   color: var(--text-primary);
   cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.3s ease;
   font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.profile-button:hover {
+.profile-button:hover,
+.profile-button:focus {
   background: var(--border-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+  border-color: #007aff;
+  transform: scale(1.05);
 }
 
 .profile-avatar {
@@ -189,12 +201,13 @@ body {
   -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-primary);
   border-radius: 16px;
-  box-shadow: 0 20px 40px var(--shadow-secondary);
+  box-shadow: 0 20px 40px var(--shadow-primary);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px) scale(0.95);
-  transition: all 0.2s ease;
-  z-index: 1001;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  overflow: hidden;
 }
 
 .profile-dropdown-menu.show {
@@ -254,7 +267,7 @@ body {
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.3s ease;
   border: none;
   background: none;
   width: 100%;
@@ -263,8 +276,11 @@ body {
   font-family: inherit;
 }
 
-.dropdown-item:hover {
+.dropdown-item:hover,
+.dropdown-item:focus {
   background: var(--border-primary);
+  color: var(--text-primary);
+  transform: scale(1.05);
 }
 
 .dropdown-item svg {
@@ -673,7 +689,7 @@ textarea:not(.auth-form textarea):not(.auth-form-fields textarea):focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 0; /* No horizontal padding - align with button edges */
+  padding: 0.75rem 2rem; /* Match container horizontal padding for perfect badge/meta alignment */
   border-bottom: 1px solid var(--border-primary);
   position: relative;
   width: 100%;
@@ -718,8 +734,8 @@ textarea:not(.auth-form textarea):not(.auth-form-fields textarea):focus {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  /* Calculate width: full width minus meta section width (approx 120px) */
-  max-width: calc(100% - 120px);
+  /* Calculate width: full width minus fixed meta section width */
+  max-width: calc(100% - 130px);
   margin-right: 0; /* Remove margin for perfect alignment */
   /* Remove left padding since task-item now provides the alignment */
   padding-left: 0;
@@ -749,19 +765,24 @@ textarea:not(.auth-form textarea):not(.auth-form-fields textarea):focus {
   gap: 0.5rem;
   flex-shrink: 0;
   justify-content: flex-end; /* Push content to the right */
-  margin-left: auto; /* Ensure the meta section is pushed to the right edge */
-  margin-right: 0; /* No right margin - flush with container edge */
-  padding-right: 0; /* No right padding */
+  margin-left: auto; /* Push to right edge */
+  margin-right: 0; /* No margin - let task-item padding handle positioning */
   padding-left: 0; /* No left padding */
+  padding-right: 0; /* No right padding - task-item handles right padding */
+  min-width: 120px; /* Fixed minimum width for consistent alignment */
+  max-width: 120px; /* Fixed maximum width for consistent alignment */
 }
 
 .task-due {
-  min-width: auto; /* Allow natural width */
+  min-width: 80px; /* Fixed minimum width for alignment */
   text-align: center; /* Center-align the due date text */
   color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
   order: 1; /* Put due date first (above buttons) */
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .task-actions {
@@ -775,23 +796,52 @@ textarea:not(.auth-form textarea):not(.auth-form-fields textarea):focus {
   padding: 0.5rem 0.8rem;
   border-radius: 8px;
   text-decoration: none;
-  transition: background 0.2s ease, transform 0.3s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  border: 1px solid transparent;
+  font-family: inherit;
 }
 .task-actions a[href*="/done"] {
-  background: #34c759; color: #0a0a0a;
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-green);
 }
 .task-actions a[href*="/done"]:hover {
-  background: #28a745 !important;
-  color: #fff !important;
-  transform: scale(1.05) !important;
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
 }
 .task-actions a[href*="/remove"] {
-  background: #ff453a; color: #fff;
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-red);
 }
 .task-actions a[href*="/remove"]:hover {
-  background: #d63031 !important;
-  color: #fff !important;
-  transform: scale(1.05) !important;
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.3);
+}
+
+/* Light theme button adjustments */
+[data-theme="light"] .task-actions a[href*="/done"] {
+  color: white;
+}
+[data-theme="light"] .task-actions a[href*="/done"]:hover {
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
+}
+[data-theme="light"] .task-actions a[href*="/remove"] {
+  color: white;
+}
+[data-theme="light"] .task-actions a[href*="/remove"]:hover {
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4);
 }
 
 /* 9) Completed tasks: strikethrough + lighter text */
@@ -821,11 +871,207 @@ li.completed .task-due {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Ensure consistent spacing when progress bar is not present */
-.filter-bar {
+/* Filter dropdown styles - matching profile dropdown */
+.filter-container {
   display: flex;
-  gap: 0.75rem;
+  justify-content: flex-start;
   margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.3s ease;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filter-button:hover,
+.filter-button:focus {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+  border-color: #007aff;
+  transform: scale(1.05);
+}
+
+.filter-icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.filter-text {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filter-button[aria-expanded="true"] .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  min-width: 200px;
+  background: var(--bg-tertiary);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px var(--shadow-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.filter-dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.filter-dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.filter-dropdown-item:hover {
+  background: var(--border-primary);
+}
+
+.filter-dropdown-item.active {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+/* Light theme filter dropdown */
+[data-theme="light"] .filter-button {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .filter-button:hover {
+  background: #e5e5ea;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+/* Light theme profile dropdown */
+[data-theme="light"] .profile-button {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .profile-button:hover {
+  background: #ffffff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+[data-theme="light"] .profile-dropdown-menu {
+  background: #e5e5ea !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Additional specificity for mobile */
+@media (max-width: 768px) {
+  [data-theme="light"] .profile-dropdown-menu {
+    background: #e5e5ea !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  [data-theme="light"] .filter-dropdown-menu {
+    background: #e5e5ea !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Extra strong overrides for profile dropdown to match filter dropdown exactly */
+  [data-theme="light"] .profile-dropdown-menu,
+  [data-theme="light"] .profile-dropdown-menu.show {
+    background: #e5e5ea !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    opacity: 1 !important;
+  }
+  
+  /* Dark theme mobile overrides to ensure consistency */
+  [data-theme="dark"] .profile-dropdown-menu,
+  [data-theme="dark"] .profile-dropdown-menu.show {
+    background: var(--bg-tertiary) !important;
+    backdrop-filter: var(--backdrop-blur) !important;
+    -webkit-backdrop-filter: var(--backdrop-blur) !important;
+    opacity: 1 !important;
+  }
+}
+
+[data-theme="light"] .filter-dropdown-menu {
+  background: #e5e5ea !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .filter-dropdown-item {
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .filter-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .filter-dropdown-item.active {
+  color: var(--accent-blue);
+}
+
+/* Mobile filter dropdown */
+@media (max-width: 768px) {
+  .filter-container {
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-dropdown-menu {
+    min-width: 180px;
+  }
 }
 
 .filter-btn {
@@ -946,6 +1192,7 @@ form {
   gap: 0.75rem;
   margin-bottom: 1rem;
   width: 100%;
+  padding: 0; /* Remove any extra padding to align with container edges */
 }
 
 .form-field {
@@ -1310,7 +1557,7 @@ body.ios-picker-open {
     width: 100% !important;
     margin: 0 !important;
     box-sizing: border-box !important;
-    padding: 0.75rem 0 !important;
+    padding: 0.75rem 1rem !important;
     flex-wrap: nowrap !important;
     gap: 0.5rem !important;
     align-items: center !important;
@@ -1319,13 +1566,18 @@ body.ios-picker-open {
   .task-desc, .task-meta {
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     height: 48px !important;
     min-height: 48px !important;
+  }
+  .task-desc {
+    justify-content: flex-start !important;
+  }
+  .task-meta {
+    justify-content: flex-end !important;
   }
   /* Ensure input box aligns with action buttons */
   .task-desc.editing input[type="text"] {
@@ -1398,7 +1650,7 @@ body.ios-picker-open {
     flex: 1 !important;
     min-width: 0 !important;
     margin-bottom: 0 !important;
-    margin-right: 0.5rem !important;
+    margin-right: 0 !important;
     max-width: calc(100% - 100px) !important;
   }
   .task-meta {
@@ -1409,24 +1661,24 @@ body.ios-picker-open {
 /* --- Consolidated Light Theme Form Styles --- */
 [data-theme="light"] .form select,
 [data-theme="light"] .form textarea {
-  background: #ffffff !important;
+  background: #e5e5ea !important;
   color: #1d1d1f !important;
-  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
 }
 [data-theme="light"] .form select:hover,
 [data-theme="light"] .form textarea:hover {
-  background: #ffffff !important;
+  background: #e5e5ea !important;
   border-color: #007aff !important;
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
 }
 [data-theme="light"] .form select:focus,
 [data-theme="light"] .form textarea:focus {
-  background: #ffffff !important;
+  background: #e5e5ea !important;
   border-color: #007aff !important;
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
 }
 [data-theme="light"] .form select option {
-  background: #ffffff !important;
+  background: #e5e5ea !important;
   color: #1d1d1f !important;
 }
 [data-theme="light"] .form label {
@@ -1517,6 +1769,28 @@ body.ios-picker-open {
   flex-shrink: 0;
 }
 
+/* Recurring Badge Styles */
+.recurring-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  margin-right: 0.5rem;
+  margin-left: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: 1.5px solid;
+  background: transparent;
+  vertical-align: middle;
+  line-height: 1;
+  min-width: 35px;
+  text-align: center;
+  flex-shrink: 0;
+  color: #5ac8fa;
+  border-color: #5ac8fa;
+}
+
+
 .priority-badge.priority-high {
   color: #ff453a;
   border-color: #ff453a;
@@ -1548,8 +1822,205 @@ body.ios-picker-open {
   border-color: #34c759;
 }
 
+/* Light theme recurring badge */
+[data-theme="light"] .recurring-badge {
+  color: #007aff;
+  border-color: #007aff;
+}
+
+
+/* Badge container for stacking priority and recurring badges vertically */
+.badge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  justify-content: center;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+  pointer-events: none; /* Make badges non-clickable */
+  min-height: 48px; /* Ensure consistent height for alignment */
+}
+
+/* Update task-item to use flexbox for badge container, text, and actions */
+.task-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+  transition: all 0.2s ease;
+  min-height: 60px;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+}
+
+
+/* Task description should be clickable and flexible */
+.task-desc {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  margin-right: 0;
+}
+
+/* Completed task descriptions should not be clickable or editable */
+.task-item.completed .task-desc {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Mobile badge alignment */
+@media (max-width: 768px) {
+  .badge-container {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  
+  .task-item {
+    align-items: flex-start !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .task-desc {
+    padding: 0.25rem 0 !important;
+    margin-top: 0;
+  }
+  
+  .task-meta {
+    align-self: flex-start !important;
+    margin-top: 0;
+  }
+  
+  /* Ensure completed task badges align properly on mobile */
+  .task-item.completed .badge-container {
+    align-self: flex-start;
+    margin-top: 0;
+    min-height: auto;
+  }
+}
+
+/* Completion Date Badge Styles - matching other badge styles exactly */
+.completion-date-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  margin-right: 0.5rem;
+  margin-left: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 6px;
+  border: 1.5px solid;
+  background: transparent;
+  vertical-align: middle;
+  line-height: 1;
+  min-width: 35px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+/* Light theme completion date badge */
+[data-theme="light"] .completion-date-badge {
+  color: #6e6e73;
+  border-color: #6e6e73;
+}
+
+/* Completed task badge container alignment */
+.task-item.completed .badge-container {
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 48px;
+}
+
+/* Completed task meta styling - position date badge on the right */
+.task-item.completed .task-meta {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  margin-left: auto !important;
+  margin-right: 2rem !important;
+}
+
+/* Recurring form options styling */
+.recurring-options {
+  margin-top: 0.5rem;
+}
+
+.recurring-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.recurring-options input[type="checkbox"] {
+  width: auto;
+  margin-right: 0.5rem;
+}
+
+.recurring-options select,
+.recurring-options input[type="number"] {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.recurring-options select:hover,
+.recurring-options input[type="number"]:hover {
+  background: var(--border-primary);
+  border-color: #007aff;
+}
+
+.recurring-options select:focus,
+.recurring-options input[type="number"]:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+.interval-input {
+  width: 80px;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+#interval-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Light theme form elements */
+[data-theme="light"] .recurring-options select,
+[data-theme="light"] .recurring-options input[type="number"] {
+  background: #ffffff;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .recurring-options select:hover,
+[data-theme="light"] .recurring-options input[type="number"]:hover {
+  background: #ffffff;
+  border-color: #007aff;
+}
+
+[data-theme="light"] .recurring-options select:focus,
+[data-theme="light"] .recurring-options input[type="number"]:focus {
+  background: #ffffff;
+  border-color: #007aff;
+}
+
 /* Compact mode adjustments */
-body.compact-mode .priority-badge {
+body.compact-mode .priority-badge,
+body.compact-mode .recurring-badge {
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
   margin-right: 0.4rem;
@@ -1576,7 +2047,8 @@ body.compact-mode .task-actions a {
   font-size: 0.8rem;
 }
 
-body.compact-mode .priority-badge {
+body.compact-mode .priority-badge,
+body.compact-mode .recurring-badge {
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
   margin-right: 0.4rem;
@@ -1608,7 +2080,8 @@ body.compact-mode .setting-description {
     font-size: 0.8rem !important;
     padding: 0.4rem 0.6rem !important;
   }
-  .priority-badge {
+  .priority-badge,
+  .recurring-badge {
     font-size: 0.6rem !important;
     padding: 0.15rem 0.4rem !important;
     margin-right: 0.4rem !important;
@@ -1833,18 +2306,437 @@ body.compact-mode .setting-description {
 .task-text {
   overflow: hidden;
   text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Allow up to 2 lines before triggering wrapping */
-  line-clamp: 2; /* Standard property */
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  max-width: 100%;
 }
 
-/* When task wraps, allow full text display */
+/* For moderately long text, allow 2 lines */
 .task-item[data-long-text] .task-text {
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
-  display: block;
   white-space: normal;
-  word-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* For very long text, allow 3 lines on desktop, 2 on mobile */
+.task-item[data-very-long-text] .task-text {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile specific adjustments for long text */
+@media (max-width: 768px) {
+  .task-item[data-very-long-text] .task-text {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  
+  .task-item[data-long-text] .task-text {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  /* Keep layout consistent - no stacking */
+  .task-item[data-very-long-text],
+  .task-item[data-long-text] {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .task-item[data-very-long-text] .task-desc,
+  .task-item[data-long-text] .task-desc {
+    max-width: calc(100% - 120px);
+    margin-right: 0.5rem;
+  }
+  
+  .task-item[data-very-long-text] .task-meta,
+  .task-item[data-long-text] .task-meta {
+    align-self: center;
+    margin-top: 0;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Recurring task actions menu */
+.recurring-actions-container {
+  position: relative;
+  display: inline-block;
+}
+
+.recurring-actions-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+}
+
+.recurring-actions-btn:hover,
+.recurring-actions-btn:focus {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+  border-color: #007aff;
+  transform: scale(1.05);
+}
+
+.actions-dots {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.recurring-actions-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: var(--bg-tertiary);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px var(--shadow-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  width: 160px;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.recurring-actions-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.recurring-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recurring-action-item.complete-action {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-green);
+}
+
+.recurring-action-item.complete-action:hover {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.4);
+  filter: brightness(1.1);
+}
+
+.recurring-action-item.delete-occurrence-action {
+  background: var(--accent-orange);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-orange);
+}
+
+.recurring-action-item.delete-occurrence-action:hover {
+  background: var(--accent-orange);
+  color: var(--bg-primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(255, 149, 0, 0.4);
+  filter: brightness(1.1);
+}
+
+.recurring-action-item.delete-series-action {
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-red);
+}
+
+.recurring-action-item.delete-series-action:hover {
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(255, 69, 58, 0.4);
+  filter: brightness(1.1);
+}
+
+/* Remove margin from last item in recurring menu */
+.recurring-action-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Regular task actions menu - same style as recurring */
+.regular-actions-container {
+  position: relative;
+}
+
+.regular-actions-btn {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+}
+
+.regular-actions-btn:hover,
+.regular-actions-btn:focus {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+  border-color: #007aff;
+  transform: scale(1.05);
+}
+
+.regular-actions-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 140px;
+  background: var(--bg-tertiary);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px var(--shadow-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.regular-actions-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.regular-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  position: relative;
+  overflow: hidden;
+  background: none;
+}
+
+.regular-action-item:hover {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  transform: scale(1.02);
+}
+
+.regular-action-item.complete-action {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-green);
+}
+
+.regular-action-item.complete-action:hover {
+  background: var(--accent-green);
+  color: var(--bg-primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.4);
+  filter: brightness(1.1);
+}
+
+.regular-action-item.delete-action {
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  border: 1px solid var(--accent-red);
+}
+
+.regular-action-item.delete-action:hover {
+  background: var(--accent-red);
+  color: var(--bg-primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(255, 69, 58, 0.4);
+  filter: brightness(1.1);
+}
+
+/* Remove margin from last item in regular menu */
+.regular-action-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Light theme recurring actions */
+[data-theme="light"] .recurring-actions-menu {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme regular actions */
+[data-theme="light"] .regular-actions-btn {
+  background: #e5e5ea;
+  color: #1d1d1f;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .regular-actions-btn:hover {
+  color: #1d1d1f;
+  border-color: var(--accent-blue);
+}
+
+[data-theme="light"] .regular-actions-menu {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .regular-action-item.complete-action {
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .regular-action-item.complete-action:hover {
+  color: #e5e5ea;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
+}
+
+[data-theme="light"] .regular-action-item.delete-action {
+  color: white;
+}
+
+[data-theme="light"] .regular-action-item.delete-action:hover {
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 69, 58, 0.4);
+}
+
+/* Light theme recurring actions */
+[data-theme="light"] .recurring-actions-btn {
+  background: #e5e5ea;
+  color: #1d1d1f;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .recurring-actions-btn:hover {
+  color: #1d1d1f;
+  border-color: var(--accent-blue);
+}
+
+[data-theme="light"] .recurring-action-item.complete-action {
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .recurring-action-item.complete-action:hover {
+  color: #e5e5ea;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);
+}
+
+[data-theme="light"] .recurring-action-item.delete-occurrence-action {
+  color: white;
+}
+
+[data-theme="light"] .recurring-action-item.delete-occurrence-action:hover {
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4);
+}
+
+[data-theme="light"] .recurring-action-item.delete-series-action {
+  color: white;
+}
+
+[data-theme="light"] .recurring-action-item.delete-series-action:hover {
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.4);
+}
+
+/* Mobile optimizations for recurring and regular actions */
+@media (max-width: 768px) {
+  .recurring-actions-menu {
+    width: 150px;
+    right: -10px;
+  }
+  
+  .recurring-action-item {
+    padding: 10px 14px;
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    min-height: 40px;
+  }
+  
+  .recurring-actions-btn {
+    padding: 0.4rem 0.6rem;
+    min-width: 36px;
+    height: 28px;
+  }
+  
+  .regular-actions-btn {
+    padding: 0.4rem 0.6rem;
+    min-width: 36px;
+    height: 28px;
+  }
+  
+  .regular-actions-menu {
+    width: 130px;
+    right: -10px;
+  }
+  
+  .regular-action-item {
+    padding: 10px 14px;
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    min-height: 40px;
+  }
 }

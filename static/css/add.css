@@ -35,3 +35,271 @@
   color: var(--text-primary);
   padding: 0.5rem;
 }
+
+/* Recurring task checkbox styling */
+.form-field label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  padding: 0.5rem 0;
+}
+
+.form-field label:hover {
+  color: var(--accent-blue);
+}
+
+/* Custom checkbox styling */
+.form-field input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-primary);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.form-field input[type="checkbox"]:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-secondary);
+}
+
+.form-field input[type="checkbox"]:checked {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.form-field input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.form-field input[type="checkbox"]:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+/* Recurring options styling */
+.recurring-options {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.recurring-options label {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.recurring-inline-fields select,
+.recurring-inline-fields input[type="number"] {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  min-height: 50px;
+  height: 50px;
+  line-height: 1.2;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recurring-inline-fields select:hover,
+.recurring-inline-fields input[type="number"]:hover {
+  background: var(--border-primary);
+  color: var(--text-primary);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.3s ease;
+}
+
+.recurring-inline-fields select:focus,
+.recurring-inline-fields input[type="number"]:focus {
+  outline: none;
+  background: var(--bg-secondary);
+  border-color: #007aff;
+  color: var(--text-primary);
+}
+
+.interval-input {
+  width: 100px;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+#interval-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin-left: 0.5rem;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .priority-select {
+  background: #e5e5ea;
+  color: #1d1d1f;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .priority-select:hover,
+[data-theme="light"] .priority-select:focus {
+  background: #e5e5ea;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+[data-theme="light"] .form-field input[type="checkbox"] {
+  border-color: rgba(0, 0, 0, 0.2);
+  background: #e5e5ea;
+}
+
+[data-theme="light"] .form-field input[type="checkbox"]:hover {
+  border-color: var(--accent-blue);
+  background: #e5e5ea;
+}
+
+[data-theme="light"] .form-field input[type="checkbox"]:checked {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+[data-theme="light"] .recurring-options {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .recurring-inline-fields select,
+[data-theme="light"] .recurring-inline-fields input[type="number"] {
+  background: #e5e5ea;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .recurring-inline-fields select:hover,
+[data-theme="light"] .recurring-inline-fields input[type="number"]:hover {
+  background: #e5e5ea;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+[data-theme="light"] .recurring-inline-fields select:focus,
+[data-theme="light"] .recurring-inline-fields input[type="number"]:focus {
+  background: #e5e5ea;
+  border-color: #007aff;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+}
+
+[data-theme="light"] .priority-select option {
+  background: #e5e5ea;
+  color: #1d1d1f;
+}
+
+/* Recurring section layout */
+.recurring-section {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0; /* Align with container edges */
+}
+
+.recurring-checkbox-field {
+  margin-bottom: 1rem;
+  padding: 0; /* Align with container edges */
+}
+
+.recurring-inline-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recurring-inline-fields .form-field label {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+.interval-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.interval-field .interval-input {
+  flex: 0 0 100px;
+  margin-right: 0;
+}
+
+.interval-field #interval-label {
+  flex: 1;
+  margin-left: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Mobile layout - stack recurring fields */
+@media (max-width: 768px) {
+  .recurring-inline-fields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .recurring-section {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0; /* Align with mobile container edges */
+  }
+  
+  .recurring-checkbox-field {
+    padding: 0; /* Align with mobile container edges */
+  }
+}
+
+/* Light theme recurring section */
+[data-theme="light"] .recurring-inline-fields {
+  background: #e5e5ea;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .interval-field #interval-label {
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .recurring-inline-fields .form-field label {
+  color: #1d1d1f;
+}

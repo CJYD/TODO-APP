@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify, flash
 from flask_mail import Mail, Message
@@ -124,6 +125,19 @@ def api_change_password():
     db.session.commit()
     return jsonify({"success": True})
 
+def calculate_next_due_date(base_date, recurrence_type, interval):
+    """Calculate next due date for recurring tasks"""
+    if recurrence_type == 'daily':
+        return base_date + timedelta(days=interval)
+    elif recurrence_type == 'weekly':
+        return base_date + timedelta(weeks=interval)
+    elif recurrence_type == 'monthly':
+        return base_date + relativedelta(months=interval)
+    elif recurrence_type == 'yearly':
+        return base_date + relativedelta(years=interval)
+    else:
+        return base_date + timedelta(days=interval)
+
 @app.route("/")
 @login_required
 def index():
@@ -133,13 +147,22 @@ def index():
         db.case((Task.due_date != None, Task.due_date), else_=Task.created_at)
     ).all()
 
-    active    = [t for t in all_tasks if not t.done]
+    active    = [t for t in all_tasks if not t.done and not t.is_recurring]
     active.sort(key=lambda t: t.due_date or t.created_at)
 
     completed = [t for t in all_tasks if t.done]
     completed.sort(key=lambda t: t.due_date or t.created_at)
 
-    total    = len(all_tasks)
+    # Get recurring tasks (parent tasks only)
+    recurring_tasks = Task.query.filter_by(
+        user_id=current_user.id,
+        is_recurring=True,
+        parent_task_id=None
+    ).order_by(Task.next_due_date.asc()).all()
+
+    # Calculate progress excluding recurring parent tasks (they don't get "completed")
+    non_recurring_tasks = [t for t in all_tasks if not t.is_recurring or t.parent_task_id is not None]
+    total = len(non_recurring_tasks)
     pct_done = int(len(completed) / total * 100) if total else 0
 
     # Use UTC for backend calculations, pass UTC to frontend for local conversion
@@ -151,6 +174,7 @@ def index():
         "index.html",
         active_tasks=active,
         completed_tasks=completed,
+        recurring_tasks=recurring_tasks,
         pct_done=pct_done,
         has_completed_tasks=len(completed) > 0,
         now_utc=now.isoformat()  # Pass UTC time to frontend
@@ -169,6 +193,11 @@ def add():
         date_str = request.form.get("due_date", "")
         time_str = request.form.get("due_time", "")
         tz_offset_str = request.form.get("tz_offset", None)
+        
+        # Recurring task fields
+        is_recurring = request.form.get("is_recurring") == "on"
+        recurrence_type = request.form.get("recurrence_type", "daily")
+        recurrence_interval = int(request.form.get("recurrence_interval", 1))
 
         if desc:
             # parse the new task's due datetime (or None)
@@ -195,7 +224,11 @@ def add():
                 description=desc,
                 priority=priority,
                 due_date=new_due,
-                user_id=current_user.id
+                user_id=current_user.id,
+                is_recurring=is_recurring,
+                recurrence_type=recurrence_type if is_recurring else None,
+                recurrence_interval=recurrence_interval if is_recurring else 1,
+                next_due_date=new_due or datetime.utcnow() if is_recurring else None
             )
             db.session.add(task)
             db.session.commit()
@@ -209,6 +242,52 @@ def add():
 def done(task_id):
     t = Task.query.filter_by(id=task_id, user_id=current_user.id).first_or_404()
     t.done = True
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/generate_recurring_task/<int:task_id>")
+@login_required
+def generate_recurring_task(task_id):
+    """Generate a new instance of a recurring task and update next due date"""
+    recurring_task = Task.query.filter_by(id=task_id, user_id=current_user.id, is_recurring=True).first_or_404()
+    
+    # Create a new task instance
+    new_task = Task(
+        description=recurring_task.description,
+        priority=recurring_task.priority,
+        due_date=recurring_task.next_due_date,
+        user_id=current_user.id,
+        is_recurring=False,  # This is an instance, not the recurring parent
+        parent_task_id=recurring_task.id,
+        done=True  # Mark as completed immediately
+    )
+    
+    # Update the next due date for the recurring task
+    current_due = recurring_task.next_due_date or datetime.utcnow()
+    recurring_task.next_due_date = calculate_next_due_date(
+        current_due, 
+        recurring_task.recurrence_type, 
+        recurring_task.recurrence_interval
+    )
+    
+    db.session.add(new_task)
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/skip_recurring_occurrence/<int:task_id>")
+@login_required
+def skip_recurring_occurrence(task_id):
+    """Skip the current occurrence of a recurring task and advance to next interval"""
+    recurring_task = Task.query.filter_by(id=task_id, user_id=current_user.id, is_recurring=True).first_or_404()
+    
+    # Update the next due date for the recurring task without creating a completed instance
+    current_due = recurring_task.next_due_date or datetime.utcnow()
+    recurring_task.next_due_date = calculate_next_due_date(
+        current_due, 
+        recurring_task.recurrence_type, 
+        recurring_task.recurrence_interval
+    )
+    
     db.session.commit()
     return redirect(url_for("index"))
 

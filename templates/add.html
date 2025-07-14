@@ -57,6 +57,42 @@
       </div>
     </div>
 
+    <!-- Recurring options section - desktop layout -->
+    <div class="recurring-section">
+      <div class="form-field recurring-checkbox-field">
+        <label for="is_recurring">
+          <input type="checkbox" id="is_recurring" name="is_recurring" onchange="toggleRecurringOptions()">
+          Make this a recurring task
+        </label>
+      </div>
+      <div class="recurring-inline-fields" id="recurring-options" style="display: none;">
+        <div class="form-field">
+          <label for="recurrence_type">Repeat</label>
+          <select id="recurrence_type" name="recurrence_type" class="recurrence-select">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="recurrence_interval">Every</label>
+          <div class="interval-field">
+            <input
+              type="number"
+              id="recurrence_interval"
+              name="recurrence_interval"
+              min="1"
+              max="365"
+              value="1"
+              class="interval-input"
+            >
+            <span id="interval-label">day(s)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Hidden field for user's timezone offset (in minutes) -->
     <input type="hidden" id="tz_offset" name="tz_offset" value="">
     <button type="submit" class="btn full-width">Add Task</button>
@@ -85,16 +121,79 @@ document.addEventListener('DOMContentLoaded', function() {
     prioritySelect.value = defaultPriority;
   }
   
-  // Load default time from settings
-  const defaultTime = localStorage.getItem('settings-default-time') || '17:00';
+  // Load default time from settings and convert to 12-hour format
+  const defaultTime24 = localStorage.getItem('settings-default-time') || '17:00';
   const timeInput = document.getElementById('due_time');
   if (timeInput && !timeInput.value) {
+    // Convert default time to 12-hour format
+    const [hours, minutes] = defaultTime24.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const defaultTime12 = `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    
     // Only set default if user hasn't selected a time
     timeInput.addEventListener('focus', function() {
       if (!this.value) {
-        this.value = defaultTime;
+        this.value = defaultTime12;
+        this.setAttribute('data-24h-value', defaultTime24);
       }
     });
+  }
+  
+  // Initialize recurring options
+  const recurringType = document.getElementById('recurrence_type');
+  if (recurringType) {
+    recurringType.addEventListener('change', updateIntervalLabel);
+    updateIntervalLabel(); // Set initial label
+  }
+});
+
+// Toggle recurring options visibility
+function toggleRecurringOptions() {
+  const checkbox = document.getElementById('is_recurring');
+  const options = document.getElementById('recurring-options');
+  
+  if (options) {
+    options.style.display = checkbox.checked ? 'grid' : 'none';
+  }
+}
+
+// Update the interval label based on recurrence type
+function updateIntervalLabel() {
+  const type = document.getElementById('recurrence_type').value;
+  const label = document.getElementById('interval-label');
+  
+  const labels = {
+    'daily': 'day(s)',
+    'weekly': 'week(s)',
+    'monthly': 'month(s)',
+    'yearly': 'year(s)'
+  };
+  
+  label.textContent = labels[type] || 'day(s)';
+}
+
+// Convert 12-hour time to 24-hour format before form submission
+document.querySelector('form').addEventListener('submit', function(e) {
+  const timeInput = document.getElementById('due_time');
+  if (timeInput && timeInput.value) {
+    let timeValue = timeInput.value;
+    
+    // Check if it's in 12-hour format
+    if (timeValue.includes('AM') || timeValue.includes('PM')) {
+      const [time, period] = timeValue.split(' ');
+      const [hours, minutes] = time.split(':').map(Number);
+      let hour24 = hours;
+      
+      if (period === 'PM' && hours !== 12) {
+        hour24 += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hour24 = 0;
+      }
+      
+      // Convert to 24-hour format for backend
+      timeInput.value = `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
   }
 });
 </script>

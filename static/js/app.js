@@ -34,7 +34,75 @@ document.addEventListener('keydown', function(event) {
             dropdown.classList.remove('show');
             profileButton.setAttribute('aria-expanded', 'false');
         }
+        
+        // Also close filter dropdown
+        const filterDropdown = document.getElementById('filterDropdown');
+        const filterButton = document.querySelector('.filter-button');
+        if (filterDropdown && filterDropdown.classList.contains('show')) {
+            filterDropdown.classList.remove('show');
+            filterButton.setAttribute('aria-expanded', 'false');
+        }
     }
+});
+
+// Filter dropdown functionality
+function toggleFilterDropdown() {
+    const dropdown = document.getElementById('filterDropdown');
+    const button = document.querySelector('.filter-button');
+    
+    if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+        button.setAttribute('aria-expanded', 'false');
+    } else {
+        dropdown.classList.add('show');
+        button.setAttribute('aria-expanded', 'true');
+    }
+}
+
+// Close filter dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const filterDropdown = document.getElementById('filterDropdown');
+    const filterButton = document.querySelector('.filter-button');
+    
+    if (filterDropdown && filterButton && 
+        !filterDropdown.contains(event.target) && 
+        !filterButton.contains(event.target)) {
+        filterDropdown.classList.remove('show');
+        filterButton.setAttribute('aria-expanded', 'false');
+    }
+});
+
+// Handle filter dropdown item clicks
+document.addEventListener('DOMContentLoaded', function() {
+    const filterItems = document.querySelectorAll('.filter-dropdown-item');
+    const filterText = document.querySelector('.filter-text');
+    
+    filterItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const filter = this.getAttribute('data-filter');
+            const filterLabel = this.textContent;
+            
+            // Update active state
+            filterItems.forEach(fi => fi.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update button text
+            if (filterText) {
+                filterText.textContent = filterLabel;
+            }
+            
+            // Close dropdown
+            const dropdown = document.getElementById('filterDropdown');
+            const button = document.querySelector('.filter-button');
+            if (dropdown && button) {
+                dropdown.classList.remove('show');
+                button.setAttribute('aria-expanded', 'false');
+            }
+            
+            // Apply filter using existing logic
+            applyFilter(filter);
+        });
+    });
 });
 
 // Custom iOS-style wheel picker implementation
@@ -573,7 +641,11 @@ class IOSWheelPicker {
 
         doneBtn.addEventListener('click', () => {
             const selectedTime = this.getSelectedTime(modal);
-            input.value = selectedTime;
+            // Convert to 12-hour format for display
+            const time12Hour = this.convertTo12Hour(selectedTime);
+            input.value = time12Hour;
+            // Store 24-hour format in a hidden field if needed for backend
+            input.setAttribute('data-24h-value', selectedTime);
             this.closeModal(modal);
         });
 
@@ -612,10 +684,36 @@ class IOSWheelPicker {
     }
 
     parseTime(timeString) {
-        const [hours, minutes] = timeString.split(':').map(Number);
-        const date = new Date();
-        date.setHours(hours, minutes, 0, 0);
-        return date;
+        // Handle both 12-hour and 24-hour formats
+        if (timeString.includes('AM') || timeString.includes('PM')) {
+            // Parse 12-hour format
+            const [time, period] = timeString.split(' ');
+            const [hours, minutes] = time.split(':').map(Number);
+            let hour24 = hours;
+            
+            if (period === 'PM' && hours !== 12) {
+                hour24 += 12;
+            } else if (period === 'AM' && hours === 12) {
+                hour24 = 0;
+            }
+            
+            const date = new Date();
+            date.setHours(hour24, minutes, 0, 0);
+            return date;
+        } else {
+            // Parse 24-hour format
+            const [hours, minutes] = timeString.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+    }
+
+    convertTo12Hour(time24h) {
+        const [hours, minutes] = time24h.split(':').map(Number);
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+        return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
     }
 
     closeModal(modal) {
@@ -641,14 +739,14 @@ function initializeTaskInteractions() {
             
             const id = div.dataset.id;
             
-            // Store the priority badge element if it exists
-            const priorityBadge = div.querySelector('.priority-badge');
-            const priorityBadgeHTML = priorityBadge ? priorityBadge.outerHTML : '';
+            // Store the badge container if it exists
+            const badgeContainer = div.querySelector('.badge-container');
+            const badgeContainerHTML = badgeContainer ? badgeContainer.outerHTML : '';
             
-            // Get text content excluding priority badge
+            // Get text content excluding badge container
             let textContent = textElement.textContent.trim();
-            if (priorityBadge) {
-                textContent = textContent.replace(priorityBadge.textContent.trim(), '').trim();
+            if (badgeContainer) {
+                textContent = textContent.replace(badgeContainer.textContent.trim(), '').trim();
             }
             const full = textContent;
             const prefix = (full.match(/^(\d+\.)\s*/)||[])[1]||'';
@@ -671,12 +769,10 @@ function initializeTaskInteractions() {
                     body: JSON.stringify({description:nv})
                 }).then(()=>{
                     div.classList.remove('editing');
-                    // Restore content with priority badge and text wrapper
-                    if (priorityBadgeHTML) {
-                        div.innerHTML = priorityBadgeHTML + `<span class="task-text" title="${nv}">${prefix} ${nv}</span>`;
-                    } else {
-                        div.innerHTML = `<span class="task-text" title="${nv}">${prefix} ${nv}</span>`;
-                    }
+                    // Restore content with badge container and text wrapper
+                    div.innerHTML = badgeContainerHTML + `<span class="task-text" title="${nv}">${prefix} ${nv}</span>`;
+                    // Recheck long text handling after edit
+                    handleLongTaskTitles();
                 });
             };
             
@@ -685,12 +781,8 @@ function initializeTaskInteractions() {
                 if (e.key==='Enter') inp.blur();
                 if (e.key==='Escape') {
                     div.classList.remove('editing');
-                    // Restore original content with priority badge and text wrapper
-                    if (priorityBadgeHTML) {
-                        div.innerHTML = priorityBadgeHTML + `<span class="task-text" title="${full}">${full}</span>`;
-                    } else {
-                        div.innerHTML = `<span class="task-text" title="${full}">${full}</span>`;
-                    }
+                    // Restore original content with badge container and text wrapper
+                    div.innerHTML = badgeContainerHTML + `<span class="task-text" title="${full}">${full}</span>`;
                 }
             });
         });
@@ -709,6 +801,245 @@ function setElementVisibility(element, visible) {
     }
 }
 
+// Apply filter function - extracted for reuse
+function applyFilter(filter) {
+    const progressBar = document.getElementById('progress-bar');
+    const activeSection = document.getElementById('active-section');
+    const recurringSection = document.getElementById('recurring-section');
+    const completedSection = document.getElementById('completed-section');
+    
+    // Handle progress bar visibility (only show on 'all' filter and if it exists)
+    if (progressBar) {
+        const shouldShow = filter === 'all';
+        
+        // Use simple approach for both mobile and desktop
+        if (shouldShow) {
+            progressBar.style.setProperty('display', 'block', 'important');
+            progressBar.style.setProperty('visibility', 'visible', 'important');
+            progressBar.classList.remove('hidden-mobile');
+        } else {
+            progressBar.style.setProperty('display', 'none', 'important');
+            progressBar.style.setProperty('visibility', 'hidden', 'important');
+            progressBar.classList.add('hidden-mobile');
+        }
+        
+        // Extra safety check for "All" filter
+        if (filter === 'all') {
+            setTimeout(ensureProgressBarVisibility, 100);
+        }
+    }
+    
+    // Reset all sections and tasks to initial state
+    if (activeSection) {
+        activeSection.style.display = 'block';
+        activeSection.style.visibility = 'visible';
+    }
+    if (recurringSection) {
+        recurringSection.style.display = 'block';
+        recurringSection.style.visibility = 'visible';
+    }
+    if (completedSection) {
+        completedSection.style.display = 'block';
+        completedSection.style.visibility = 'visible';
+    }
+    
+    // Reset all tasks to be visible with proper styling
+    document.querySelectorAll('.task-item').forEach(task => {
+        task.style.display = '';  // Remove inline display style
+        task.style.visibility = 'visible';
+        task.style.height = '';
+        task.style.margin = '';
+        task.style.padding = '';
+        task.style.border = '';
+    });
+    
+    // Apply filter-specific logic
+    if (filter === 'all') {
+        // Show everything - already reset above
+        // Restore original heading
+        const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
+        if (activeHeading) {
+            activeHeading.textContent = 'Active Tasks';
+        }
+        // Restore original "no tasks" message and show if needed
+        const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
+        if (noTasksMsg) {
+            noTasksMsg.textContent = 'No active tasks.';
+            // Check if there are any visible active tasks
+            const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
+            const hasActiveTasks = Array.from(activeTasks).some(task => task.dataset.done !== 'true');
+            setElementVisibility(noTasksMsg, !hasActiveTasks);
+        }
+    } else if (filter === 'active') {
+        // Hide completed section but show recurring section
+        if (completedSection) {
+            completedSection.style.display = 'none';
+        }
+        // Show recurring section for active filter
+        if (recurringSection) {
+            recurringSection.style.display = 'block';
+        }
+        // Hide completed tasks in active section
+        const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
+        let visibleTasks = 0;
+        activeTasks.forEach(task => {
+            const isDone = task.dataset.done === 'true';
+            if (isDone) {
+                task.style.display = 'none';
+            } else {
+                task.style.display = '';
+                visibleTasks++;
+            }
+        });
+        
+        // Count recurring tasks as well
+        const recurringTasks = recurringSection ? recurringSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
+        const totalActiveTasks = visibleTasks + recurringTasks.length;
+        
+        // Restore original heading
+        const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
+        if (activeHeading) {
+            activeHeading.textContent = 'Active Tasks';
+        }
+        // Handle "no tasks" message for active section
+        const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
+        if (noTasksMsg) {
+            noTasksMsg.textContent = 'No active tasks.';
+            setElementVisibility(noTasksMsg, visibleTasks === 0);
+        }
+        // Handle "no tasks" message for recurring section
+        const recurringNoTasksMsg = recurringSection ? recurringSection.querySelector('.no-tasks') : null;
+        if (recurringNoTasksMsg) {
+            setElementVisibility(recurringNoTasksMsg, recurringTasks.length === 0);
+        }
+    } else if (filter === 'recurring') {
+        // Hide active and completed sections completely
+        if (activeSection) {
+            activeSection.style.display = 'none';
+        }
+        if (completedSection) {
+            completedSection.style.display = 'none';
+        }
+        // Ensure recurring section is visible
+        if (recurringSection) {
+            recurringSection.style.display = 'block';
+            const recurringTasks = recurringSection.querySelectorAll('.task-item:not(.no-tasks)');
+            const noTasksMsg = recurringSection.querySelector('.no-tasks');
+            if (noTasksMsg) {
+                setElementVisibility(noTasksMsg, recurringTasks.length === 0);
+            }
+        }
+    } else if (filter === 'today') {
+        // Hide completed section but show recurring section for tasks due today
+        if (completedSection) {
+            completedSection.style.display = 'none';
+        }
+        // Show recurring section for today filter to check for tasks due today
+        if (recurringSection) {
+            recurringSection.style.display = 'block';
+        }
+        
+        // Update heading for "Due Today" filter
+        const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
+        if (activeHeading) {
+            activeHeading.textContent = 'Due Today';
+        }
+        
+        // Filter active tasks to show only those due today (local time)
+        const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
+        const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
+        let visibleTasks = 0;
+        let totalActiveTasks = 0;
+
+        // Get today's local date string (YYYY-MM-DD)
+        const todayLocal = new Date();
+        const todayStr = todayLocal.toISOString().slice(0, 10);
+
+        activeTasks.forEach(task => {
+            const isDone = task.dataset.done === 'true';
+            const dueUTC = task.getAttribute('data-due-utc');
+            let isDueToday = false;
+            if (dueUTC) {
+                // Convert UTC string to local date
+                const dueDate = new Date(dueUTC);
+                const dueLocalStr = dueDate.toISOString().slice(0, 10);
+                isDueToday = dueLocalStr === todayStr;
+            }
+            // Count total active tasks (not completed)
+            if (!isDone) {
+                totalActiveTasks++;
+            }
+            // Show tasks that are due today (local date), but not completed
+            if (!isDone && isDueToday) {
+                task.style.display = '';
+                visibleTasks++;
+            } else {
+                task.style.display = 'none';
+            }
+        });
+
+        // Filter recurring tasks to show only those due today
+        const recurringTasks = recurringSection ? recurringSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
+        let visibleRecurringTasks = 0;
+        
+        recurringTasks.forEach(task => {
+            const dueUTC = task.getAttribute('data-due-utc');
+            let isDueToday = false;
+            if (dueUTC) {
+                // Convert UTC string to local date
+                const dueDate = new Date(dueUTC);
+                const dueLocalStr = dueDate.toISOString().slice(0, 10);
+                isDueToday = dueLocalStr === todayStr;
+            }
+            
+            if (isDueToday) {
+                task.style.display = '';
+                visibleRecurringTasks++;
+            } else {
+                task.style.display = 'None';
+            }
+        });
+
+        // Show/hide "no tasks" message based on visible tasks and active tasks
+        if (noTasksMsg) {
+            if (totalActiveTasks === 0) {
+                // No active tasks at all
+                noTasksMsg.textContent = 'No active tasks.';
+                setElementVisibility(noTasksMsg, true);
+            } else if (visibleTasks === 0 && visibleRecurringTasks === 0) {
+                // There are active tasks but none due today
+                noTasksMsg.textContent = 'No tasks due today.';
+                setElementVisibility(noTasksMsg, true);
+            } else {
+                setElementVisibility(noTasksMsg, false);
+            }
+        }
+        
+        // Handle "no tasks" message for recurring section
+        const recurringNoTasksMsg = recurringSection ? recurringSection.querySelector('.no-tasks') : null;
+        if (recurringNoTasksMsg) {
+            setElementVisibility(recurringNoTasksMsg, visibleRecurringTasks === 0);
+        }
+    } else if (filter === 'completed') {
+        // Hide active and recurring sections completely
+        if (activeSection) {
+            activeSection.style.display = 'none';
+        }
+        if (recurringSection) {
+            recurringSection.style.display = 'none';
+        }
+        // Ensure completed section is visible and handle "no tasks" message
+        if (completedSection) {
+            completedSection.style.display = 'block';
+            const completedTasks = completedSection.querySelectorAll('.task-item:not(.no-tasks)');
+            const noTasksMsg = completedSection.querySelector('.no-tasks');
+            if (noTasksMsg) {
+                setElementVisibility(noTasksMsg, completedTasks.length === 0);
+            }
+        }
+    }
+}
+
 // Filtering
 function initializeFiltering() {
     // Ensure default filter is active on page load
@@ -724,171 +1055,9 @@ function initializeFiltering() {
             btn.classList.add('active', 'filter-btn-active');
             
             const filter = btn.dataset.filter;
-            const progressBar = document.getElementById('progress-bar');
-            const activeSection = document.getElementById('active-section');
-            const completedSection = document.getElementById('completed-section');
             
-            // Handle progress bar visibility (only show on 'all' filter and if it exists)
-            if (progressBar) {
-                const shouldShow = filter === 'all';
-                
-                // Use simple approach for both mobile and desktop
-                if (shouldShow) {
-                    progressBar.style.setProperty('display', 'block', 'important');
-                    progressBar.style.setProperty('visibility', 'visible', 'important');
-                    progressBar.classList.remove('hidden-mobile');
-                } else {
-                    progressBar.style.setProperty('display', 'none', 'important');
-                    progressBar.style.setProperty('visibility', 'hidden', 'important');
-                    progressBar.classList.add('hidden-mobile');
-                }
-                
-                // Extra safety check for "All" filter
-                if (filter === 'all') {
-                    setTimeout(ensureProgressBarVisibility, 100);
-                }
-            }
-            
-            // Reset all sections and tasks to initial state
-            if (activeSection) {
-                activeSection.style.display = 'block';
-                activeSection.style.visibility = 'visible';
-            }
-            if (completedSection) {
-                completedSection.style.display = 'block';
-                completedSection.style.visibility = 'visible';
-            }
-            
-            // Reset all tasks to be visible with proper styling
-            document.querySelectorAll('.task-item').forEach(task => {
-                task.style.display = '';  // Remove inline display style
-                task.style.visibility = 'visible';
-                task.style.height = '';
-                task.style.margin = '';
-                task.style.padding = '';
-                task.style.border = '';
-            });
-            
-            // Apply filter-specific logic
-            if (filter === 'all') {
-                // Show everything - already reset above
-                // Restore original heading
-                const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
-                if (activeHeading) {
-                    activeHeading.textContent = 'Active Tasks';
-                }
-                // Restore original "no tasks" message and show if needed
-                const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
-                if (noTasksMsg) {
-                    noTasksMsg.textContent = 'No active tasks.';
-                    // Check if there are any visible active tasks
-                    const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
-                    const hasActiveTasks = Array.from(activeTasks).some(task => task.dataset.done !== 'true');
-                    setElementVisibility(noTasksMsg, !hasActiveTasks);
-                }
-            } else if (filter === 'active') {
-                // Hide completed section completely
-                if (completedSection) {
-                    completedSection.style.display = 'none';
-                }
-                // Hide completed tasks in active section
-                const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
-                let visibleTasks = 0;
-                activeTasks.forEach(task => {
-                    const isDone = task.dataset.done === 'true';
-                    if (isDone) {
-                        task.style.display = 'none';
-                    } else {
-                        task.style.display = '';
-                        visibleTasks++;
-                    }
-                });
-                
-                // Restore original heading
-                const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
-                if (activeHeading) {
-                    activeHeading.textContent = 'Active Tasks';
-                }
-                // Handle "no tasks" message
-                const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
-                if (noTasksMsg) {
-                    noTasksMsg.textContent = 'No active tasks.';
-                    setElementVisibility(noTasksMsg, visibleTasks === 0);
-                }
-            } else if (filter === 'today') {
-                // Hide completed section and filter active tasks
-                if (completedSection) {
-                    completedSection.style.display = 'none';
-                }
-                
-                // Update heading for "Due Today" filter
-                const activeHeading = activeSection ? activeSection.querySelector('h2') : null;
-                if (activeHeading) {
-                    activeHeading.textContent = 'Due Today';
-                }
-                
-                // Filter active tasks to show only those due today (local time)
-                const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
-                const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
-                let visibleTasks = 0;
-                let totalActiveTasks = 0;
-
-                // Get today's local date string (YYYY-MM-DD)
-                const todayLocal = new Date();
-                const todayStr = todayLocal.toISOString().slice(0, 10);
-
-                activeTasks.forEach(task => {
-                    const isDone = task.dataset.done === 'true';
-                    const dueUTC = task.getAttribute('data-due-utc');
-                    let isDueToday = false;
-                    if (dueUTC) {
-                        // Convert UTC string to local date
-                        const dueDate = new Date(dueUTC);
-                        const dueLocalStr = dueDate.toISOString().slice(0, 10);
-                        isDueToday = dueLocalStr === todayStr;
-                    }
-                    // Count total active tasks (not completed)
-                    if (!isDone) {
-                        totalActiveTasks++;
-                    }
-                    // Show tasks that are due today (local date), but not completed
-                    if (!isDone && isDueToday) {
-                        task.style.display = '';
-                        visibleTasks++;
-                    } else {
-                        task.style.display = 'none';
-                    }
-                });
-
-                // Show/hide "no tasks" message based on visible tasks and active tasks
-                if (noTasksMsg) {
-                    if (totalActiveTasks === 0) {
-                        // No active tasks at all
-                        noTasksMsg.textContent = 'No active tasks.';
-                        setElementVisibility(noTasksMsg, true);
-                    } else if (visibleTasks === 0) {
-                        // There are active tasks but none due today
-                        noTasksMsg.textContent = 'No tasks due today.';
-                        setElementVisibility(noTasksMsg, true);
-                    } else {
-                        setElementVisibility(noTasksMsg, false);
-                    }
-                }
-            } else if (filter === 'completed') {
-                // Hide active section completely
-                if (activeSection) {
-                    activeSection.style.display = 'none';
-                }
-                // Ensure completed section is visible and handle "no tasks" message
-                if (completedSection) {
-                    completedSection.style.display = 'block';
-                    const completedTasks = completedSection.querySelectorAll('.task-item:not(.no-tasks)');
-                    const noTasksMsg = completedSection.querySelector('.no-tasks');
-                    if (noTasksMsg) {
-                        setElementVisibility(noTasksMsg, completedTasks.length === 0);
-                    }
-                }
-            }
+            // Use the extracted applyFilter function
+            applyFilter(filter);
         });
     });
 }
@@ -1032,16 +1201,24 @@ function getCountdownString(dueUTC, nowUTC) {
     if (isNaN(due.getTime()) || isNaN(now.getTime())) return 'Invalid date';
     let delta = due.getTime() - now.getTime();
     if (delta <= 0) return 'Overdue';
+    
     let totalMinutes = Math.floor(delta / 60000);
     let days = Math.floor(totalMinutes / (24 * 60));
     let hours = Math.floor((totalMinutes % (24 * 60)) / 60);
     let mins = totalMinutes % 60;
-    let parts = [];
-    if (days > 0) parts.push(days + 'd');
-    if (hours > 0) parts.push(hours + 'h');
-    if (mins > 0) parts.push(mins + 'm');
-    if (parts.length === 0) parts.push('less than 1m');
-    return parts.join(' ');
+    
+    // For tasks less than 24 hours away, show hours and minutes
+    if (days === 0) {
+        let parts = [];
+        if (hours > 0) parts.push(hours + 'h');
+        if (mins > 0) parts.push(mins + 'm');
+        if (parts.length === 0) parts.push('less than 1m');
+        return parts.join(' ');
+    } 
+    // For tasks a day or more away, just show days
+    else {
+        return days + 'd';
+    }
 }
 
 function updateTaskCountdowns(nowUTC) {
@@ -1073,6 +1250,70 @@ window.addEventListener('DOMContentLoaded', function() {
     updateTaskCountdowns(nowUTC);
 });
 
+// Recurring task actions functionality
+function toggleRecurringActions(taskId) {
+    const menu = document.getElementById(`recurring-actions-${taskId}`);
+    const allMenus = document.querySelectorAll('.recurring-actions-menu');
+    
+    // Close all other menus
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.classList.remove('show');
+        }
+    });
+    
+    // Toggle the clicked menu
+    menu.classList.toggle('show');
+    
+    // Close menu when clicking outside
+    if (menu.classList.contains('show')) {
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.recurring-actions-container')) {
+                    menu.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 0);
+    }
+}
+
+// Handle long task titles dynamically
+function handleLongTaskTitles() {
+    const taskItems = document.querySelectorAll('.task-item');
+    
+    taskItems.forEach(item => {
+        const taskText = item.querySelector('.task-text');
+        
+        if (taskText) {
+            const textLength = taskText.textContent.trim().length;
+            const isMobile = window.innerWidth <= 768;
+            
+            // Remove existing attributes
+            item.removeAttribute('data-long-text');
+            item.removeAttribute('data-very-long-text');
+            
+            // Determine thresholds based on screen size
+            const longTextThreshold = isMobile ? 40 : 60;
+            const veryLongTextThreshold = isMobile ? 80 : 120;
+            
+            if (textLength > veryLongTextThreshold) {
+                item.setAttribute('data-very-long-text', '');
+            } else if (textLength > longTextThreshold) {
+                item.setAttribute('data-long-text', '');
+            }
+            // No layout changes - just let CSS handle line clamping
+        }
+    });
+}
+
+// Handle window resize for responsive layout
+let resizeTimeout;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(handleLongTaskTitles, 250);
+});
+
 // Initialize user preferences on page load
 document.addEventListener('DOMContentLoaded', function() {
     applyUserPreferences();
@@ -1081,4 +1322,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize iOS-style wheel picker for date/time inputs
     new IOSWheelPicker();
+    
+    // Handle long task titles
+    handleLongTaskTitles();
 });

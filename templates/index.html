@@ -2,12 +2,26 @@
 {% block content %}
 <div class="container">
 
-  <!-- Filter bar -->
-  <div class="filter-bar">
-    <button class="filter-btn active"   data-filter="all">All</button>
-    <button class="filter-btn"          data-filter="active">Active</button>
-    <button class="filter-btn"          data-filter="today">Due Today</button>
-    <button class="filter-btn"          data-filter="completed">Done</button>
+  <!-- Filter dropdown -->
+  <div class="filter-container">
+    <div class="filter-dropdown">
+      <button class="filter-button" onclick="toggleFilterDropdown()" aria-expanded="false">
+        <svg class="filter-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span class="filter-text">All</span>
+        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+      <div class="filter-dropdown-menu" id="filterDropdown">
+        <button class="filter-dropdown-item active" data-filter="all">All</button>
+        <button class="filter-dropdown-item" data-filter="active">Active</button>
+        <button class="filter-dropdown-item" data-filter="today">Due Today</button>
+        <button class="filter-dropdown-item" data-filter="recurring">Recurring</button>
+        <button class="filter-dropdown-item" data-filter="completed">Completed</button>
+      </div>
+    </div>
   </div>
 
   <!-- Progress bar (only shown on 'All' filter when there are completed tasks) -->
@@ -41,14 +55,25 @@
           data-done="{{ 'true' if t.done else 'false' }}"
           data-priority="{{ t.priority if t.priority else 'medium' }}"
           data-due-utc="{{ t.due_date.strftime('%Y-%m-%dT%H:%M:%SZ') if t.due_date else '' }}">
-          <div class="task-desc" data-id="{{ t.id }}">
-            {% if not t.done %}
+          {% if not t.done %}
+          <div class="badge-container">
             <span class="priority-badge priority-{{ t.priority if t.priority else 'medium' }}">
               {% if t.priority == 'high' %}HIGH
               {% elif t.priority == 'low' %}LOW
               {% else %}MED{% endif %}
             </span>
+            {% if t.is_recurring %}
+            <span class="recurring-badge">
+              {% if t.recurrence_type == 'daily' %}DAILY
+              {% elif t.recurrence_type == 'weekly' %}WEEKLY
+              {% elif t.recurrence_type == 'monthly' %}MONTHLY
+              {% elif t.recurrence_type == 'yearly' %}YEARLY
+              {% else %}RECUR{% endif %}
+            </span>
             {% endif %}
+          </div>
+          {% endif %}
+          <div class="task-desc" data-id="{{ t.id }}">
             <span class="task-text" title="{{ t.description }}">
               {% if t.done %}
                 <s>{{ t.description }}</s>
@@ -62,9 +87,31 @@
             <div class="task-due">...</div>
             <div class="task-actions">
               {% if not t.done %}
-                <a href="{{ url_for('done',   task_id=t.id) }}">Done</a>
+              <div class="regular-actions-container">
+                <button class="regular-actions-btn" onclick="toggleRegularActions({{ t.id }})">
+                  <span class="actions-dots">⋯</span>
+                </button>
+                <div class="regular-actions-menu" id="regular-actions-{{ t.id }}">
+                  <a href="{{ url_for('done', task_id=t.id) }}" class="regular-action-item complete-action">
+                    Complete
+                  </a>
+                  <a href="{{ url_for('remove', task_id=t.id) }}" class="regular-action-item delete-action">
+                    Delete
+                  </a>
+                </div>
+              </div>
+              {% else %}
+              <div class="regular-actions-container">
+                <button class="regular-actions-btn" onclick="toggleRegularActions({{ t.id }})">
+                  <span class="actions-dots">⋯</span>
+                </button>
+                <div class="regular-actions-menu" id="regular-actions-{{ t.id }}">
+                  <a href="{{ url_for('remove', task_id=t.id) }}" class="regular-action-item delete-action">
+                    Delete
+                  </a>
+                </div>
+              </div>
               {% endif %}
-              <a href="{{ url_for('remove', task_id=t.id) }}">Delete</a>
             </div>
           </div>
         </li>
@@ -81,6 +128,66 @@
     </ol>
   </div>
 
+  <!-- Recurring Tasks Section -->
+  <div id="recurring-section" class="task-section">
+    <h2>Recurring Tasks</h2>
+    <ol class="task-list">
+      {% for t in recurring_tasks %}
+        <li
+          class="task-item priority-{{ t.priority if t.priority else 'medium' }}"
+          data-done="false"
+          data-priority="{{ t.priority if t.priority else 'medium' }}"
+          data-due-utc="{{ t.next_due_date.strftime('%Y-%m-%dT%H:%M:%SZ') if t.next_due_date else '' }}">
+          <div class="badge-container">
+            <span class="priority-badge priority-{{ t.priority if t.priority else 'medium' }}">
+              {% if t.priority == 'high' %}HIGH
+              {% elif t.priority == 'low' %}LOW
+              {% else %}MED{% endif %}
+            </span>
+            <span class="recurring-badge">
+              {% if t.recurrence_type == 'daily' %}DAILY
+              {% elif t.recurrence_type == 'weekly' %}WEEKLY
+              {% elif t.recurrence_type == 'monthly' %}MONTHLY
+              {% elif t.recurrence_type == 'yearly' %}YEARLY
+              {% else %}RECUR{% endif %}
+            </span>
+          </div>
+          <div class="task-desc" data-id="{{ t.id }}">
+            <span class="task-text" title="{{ t.description }}">
+              {{ t.description }}
+            </span>
+          </div>
+          <div class="task-meta">
+            <div class="task-due">...</div>
+            <div class="task-actions">
+              <div class="recurring-actions-container">
+                <button class="recurring-actions-btn" onclick="toggleRecurringActions({{ t.id }})">
+                  <span class="actions-dots">⋯</span>
+                </button>
+                <div class="recurring-actions-menu" id="recurring-actions-{{ t.id }}">
+                  <a href="{{ url_for('generate_recurring_task', task_id=t.id) }}" class="recurring-action-item complete-action">
+                    Complete
+                  </a>
+                  <a href="{{ url_for('skip_recurring_occurrence', task_id=t.id) }}" class="recurring-action-item delete-occurrence-action">
+                    Skip
+                  </a>
+                  <a href="{{ url_for('remove', task_id=t.id) }}" class="recurring-action-item delete-series-action">
+                    Delete Series
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+      
+      <!-- Always include a no-tasks message that JavaScript can control -->
+      <li class="no-tasks{% if recurring_tasks %} hidden{% endif %}">
+        No recurring tasks.
+      </li>
+    </ol>
+  </div>
+
   <!-- Completed Tasks Section -->
   <div id="completed-section" class="task-section"
        {% if current_filter in ['active','today'] %} style="display:none"{% endif %}>
@@ -88,10 +195,17 @@
     <ol class="task-list">
       {% for t in completed_tasks %}
         <li class="task-item completed priority-{{ t.priority if t.priority else 'medium' }}" data-done="true" data-priority="{{ t.priority if t.priority else 'medium' }}">
+          <div class="badge-container">
+            <span class="completion-date-badge">
+              {{ t.created_at.strftime('%b %d') if t.created_at else 'Unknown' }}
+            </span>
+          </div>
           <div class="task-desc" data-id="{{ t.id }}">
             <span class="task-text" title="{{ t.description }}">
               <s>{{ t.description }}</s>
             </span>
+          </div>
+          <div class="task-meta">
           </div>
         </li>
       {% endfor %}

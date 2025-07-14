@@ -30,6 +30,16 @@ class Task(db.Model):
     created_at  = db.Column(db.DateTime,    default=datetime.utcnow)
     done        = db.Column(db.Boolean,     default=False)
     user_id     = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Recurring task fields
+    is_recurring = db.Column(db.Boolean, default=False)
+    recurrence_type = db.Column(db.String(20), nullable=True)  # daily, weekly, monthly, yearly
+    recurrence_interval = db.Column(db.Integer, default=1)  # every N days/weeks/months/years
+    parent_task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=True)
+    next_due_date = db.Column(db.DateTime, nullable=True)  # for recurring tasks
+    
+    # Self-referential relationship for recurring tasks
+    parent_task = db.relationship('Task', remote_side=[id], backref='child_tasks')
 
 class BugReport(db.Model):
     __tablename__ = "bug_reports"
