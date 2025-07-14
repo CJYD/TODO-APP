@@ -827,30 +827,39 @@ function initializeFiltering() {
                     activeHeading.textContent = 'Due Today';
                 }
                 
-                // Filter active tasks to show only today/overdue
+                // Filter active tasks to show only those due today (local time)
                 const activeTasks = activeSection ? activeSection.querySelectorAll('.task-item:not(.no-tasks)') : [];
                 const noTasksMsg = activeSection ? activeSection.querySelector('.no-tasks') : null;
                 let visibleTasks = 0;
                 let totalActiveTasks = 0;
-                
+
+                // Get today's local date string (YYYY-MM-DD)
+                const todayLocal = new Date();
+                const todayStr = todayLocal.toISOString().slice(0, 10);
+
                 activeTasks.forEach(task => {
-                    const days = task.dataset.days;
                     const isDone = task.dataset.done === 'true';
-                    
+                    const dueUTC = task.getAttribute('data-due-utc');
+                    let isDueToday = false;
+                    if (dueUTC) {
+                        // Convert UTC string to local date
+                        const dueDate = new Date(dueUTC);
+                        const dueLocalStr = dueDate.toISOString().slice(0, 10);
+                        isDueToday = dueLocalStr === todayStr;
+                    }
                     // Count total active tasks (not completed)
                     if (!isDone) {
                         totalActiveTasks++;
                     }
-                    
-                    // Show tasks that are due today (days = 0) or overdue (days = -1), but not completed
-                    if (!isDone && days !== '' && (parseFloat(days) === 0 || parseFloat(days) === -1)) {
+                    // Show tasks that are due today (local date), but not completed
+                    if (!isDone && isDueToday) {
                         task.style.display = '';
                         visibleTasks++;
                     } else {
                         task.style.display = 'none';
                     }
                 });
-                
+
                 // Show/hide "no tasks" message based on visible tasks and active tasks
                 if (noTasksMsg) {
                     if (totalActiveTasks === 0) {
