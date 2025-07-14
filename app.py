@@ -95,6 +95,34 @@ def after_request(response):
 
 # ─── ROUTES ───────────────────────────────────────────────────────────────
 
+# Edit username API route
+@app.route("/api/edit-username", methods=["POST"])
+@login_required
+def api_edit_username():
+    data = request.get_json()
+    new_username = data.get("username", "").strip()
+    if not new_username:
+        return jsonify({"success": False, "error": "Username cannot be empty"}), 400
+    # Check if username already exists (case-insensitive)
+    if User.query.filter(User.username.ilike(new_username)).first():
+        return jsonify({"success": False, "error": "Username already exists"}), 400
+    current_user.username = new_username.lower()
+    db.session.commit()
+    return jsonify({"success": True, "username": current_user.username.title()})
+
+# Change password API route
+@app.route("/api/change-password", methods=["POST"])
+@login_required
+def api_change_password():
+    data = request.get_json()
+    new_password = data.get("password", "")
+    if not new_password or len(new_password) < 6:
+        return jsonify({"success": False, "error": "Password must be at least 6 characters."}), 400
+    # You may want to hash the password here
+    current_user.set_password(new_password)
+    db.session.commit()
+    return jsonify({"success": True})
+
 @app.route("/")
 @login_required
 def index():

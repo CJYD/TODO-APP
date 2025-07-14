@@ -17,7 +17,14 @@
           <span class="setting-label">Username</span>
           <span class="setting-value">{{ current_user.username.title() }}</span>
         </div>
-        <button class="setting-action">Edit</button>
+        <button class="setting-action" id="edit-username-btn">Edit</button>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">Change Password</span>
+          <span class="setting-description">Update your account password</span>
+        </div>
+        <button class="setting-action" id="change-password-btn">Change</button>
       </div>
       <div class="setting-item">
         <div class="setting-info">
@@ -534,7 +541,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Load saved preferences
   loadPreferences();
-  
+
   // Theme selector
   document.querySelectorAll('.theme-option').forEach(button => {
     button.addEventListener('click', function() {
@@ -544,7 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
       savePreference('theme', theme);
     });
   });
-  
+
   // Toggle switches
   document.querySelectorAll('.toggle-switch input').forEach(toggle => {
     toggle.addEventListener('change', function() {
@@ -552,13 +559,66 @@ document.addEventListener('DOMContentLoaded', function() {
       applyTogglePreference(this.id, this.checked);
     });
   });
-  
+
   // Select dropdowns
   document.querySelectorAll('.setting-select').forEach(select => {
     select.addEventListener('change', function() {
       savePreference(this.id, this.value);
     });
   });
+
+  // Edit username button functionality
+  const editBtn = document.getElementById('edit-username-btn');
+  if (editBtn) {
+    editBtn.addEventListener('click', function() {
+      const usernameSpan = editBtn.parentElement.querySelector('.setting-value');
+      const currentUsername = usernameSpan.textContent.trim();
+      const newUsername = prompt('Enter new username:', currentUsername);
+      if (newUsername && newUsername !== currentUsername) {
+        fetch('/api/edit-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: newUsername })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            usernameSpan.textContent = data.username;
+            alert('Username updated!');
+          } else {
+            alert(data.error || 'Failed to update username.');
+          }
+        })
+        .catch(() => alert('Failed to update username.'));
+      }
+    });
+  }
+
+  // Change password button functionality
+  const changePwBtn = document.getElementById('change-password-btn');
+  if (changePwBtn) {
+    changePwBtn.addEventListener('click', function() {
+      const newPassword = prompt('Enter new password:');
+      if (newPassword && newPassword.length >= 6) {
+        fetch('/api/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: newPassword })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert('Password updated!');
+          } else {
+            alert(data.error || 'Failed to update password.');
+          }
+        })
+        .catch(() => alert('Failed to update password.'));
+      } else {
+        alert('Password must be at least 6 characters.');
+      }
+    });
+  }
 });
 
 function loadPreferences() {
@@ -634,7 +694,7 @@ function setTheme(theme) {
   if (theme === 'system') {
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', systemTheme);
-  } else {
+  } else if (theme === 'light' || theme === 'dark') {
     document.documentElement.setAttribute('data-theme', theme);
   }
 }
