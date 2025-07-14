@@ -32,6 +32,7 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['DEVELOPER_EMAIL'] = os.environ.get('DEVELOPER_EMAIL', 'developer@example.com')
 
 # Initialize extensions
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@host:port/dbname')
 mail = Mail(app)
 db.init_app(app)
 migrate = Migrate(app, db)
