@@ -86,6 +86,20 @@
   </footer>
   {% endif %}
 
+  <!-- Footer for report page -->
+  {% if current_user.is_authenticated and request.endpoint not in ['add', 'admin_bugs','login', 'register', 'settings', 'index', 'layout'] %}
+  <footer style="text-align: center; padding: 2rem 1rem 1rem; color: var(--text-secondary); font-size: 0.8rem;">
+    <p>Your feedback is important to us, thank you!</p>
+  </footer>
+  {% endif %}
+
+  <!-- Footer for admin bug report page -->
+  {% if current_user.is_authenticated and request.endpoint not in ['add', 'report','login', 'register', 'settings', 'index', 'layout'] %}
+  <footer style="text-align: center; padding: 2rem 1rem 1rem; color: var(--text-secondary); font-size: 0.8rem;">
+    <p></p>
+  </footer>
+  {% endif %}
+
   <!-- JavaScript -->
   <script src="{{ url_for('static', filename='js/app.js') }}?v={{ range(1000000, 9999999) | random }}"></script>
 </body>
